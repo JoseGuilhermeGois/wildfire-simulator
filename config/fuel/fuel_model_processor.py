@@ -1,0 +1,47 @@
+from typing import TextIO
+
+from config.business_processor import BusinessConfigProcessor, skip_lines
+from config.fuel.fuel import Fuel
+from config.fuel.fuel_facade import FuelFacade
+
+
+BATCH_OF_LINES_FOR_FUEL_MODEL_CHARACTERISTICS = 19
+
+
+class FuelModelProcessor(BusinessConfigProcessor):
+
+    def __init__(self, fuel_facade: FuelFacade):
+        self.fuel_facade: FuelFacade = fuel_facade
+
+    def process(self, file: TextIO) -> dict[str, Fuel]:
+
+        skip_lines(file)
+
+        fuel_models = {}
+        while True:
+            fuel_model_id, fuel_model_name = self.read_fuel_model_metadata(file)
+            fuel_model_characteristics = self.read_fuel_model_metadata(file)
+
+            if len(fuel_model_characteristics) < BATCH_OF_LINES_FOR_FUEL_MODEL_CHARACTERISTICS:
+                break
+
+            fuel = self.fuel_facade.get_fuel(fuel_model_name, fuel_model_characteristics)
+            fuel_models[fuel_model_id] = fuel
+
+        return fuel_models
+
+    @staticmethod
+    def read_fuel_model_metadata(file: TextIO) -> (str, str):
+        fuel_model_metadata = file.readline().split()
+
+        if not fuel_model_metadata:
+            return None, None
+
+        fuel_model_id = fuel_model_metadata.pop()
+        fuel_model_name = " ".join(fuel_model_metadata)
+
+        return fuel_model_id, fuel_model_name
+
+    @staticmethod
+    def fuel_model_characteristics(file: TextIO) -> list[float]:
+        return [float(file.readline().split()[0]) for _ in range(BATCH_OF_LINES_FOR_FUEL_MODEL_CHARACTERISTICS)]
