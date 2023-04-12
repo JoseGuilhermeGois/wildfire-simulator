@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol
 
+from config.landscape.landscape import Location
+
 
 class State(Enum):
     NON_FLAMMABLE = 0
@@ -12,6 +14,7 @@ class State(Enum):
 
 class Element(Protocol):
     state: State
+    location: Location
 
 
 class IncombustibleElement(Element):

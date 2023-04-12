@@ -24,7 +24,7 @@ class Fuel:
     heat_content: tuple
     bed_depth: float
     moisture_extinction_dead: float
-    particle_density: float = PARTICLE_DENSITY_DEFAULT
-    total_mineral_content: float = TOTAL_MINERAL_CONTENT_DEFAULT
-    effective_mineral_content: float = EFFECTIVE_MINERAL_CONTENT_DEFAULT
-    moisture_content: tuple = MOISTURE_CONTENT_DEFAULT
+    particle_density: float
+    total_mineral_content: float
+    effective_mineral_content: float
+    moisture_content: tuple

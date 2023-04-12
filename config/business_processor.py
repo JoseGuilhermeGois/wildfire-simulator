@@ -21,7 +21,7 @@ class BusinessConfigProcessor(Protocol):
                 return self.process(file)
 
     def process(self, file: TextIO) -> T:
-        pass
+        ...
 
 
 def skip_lines(file: TextIO, lines: int = 1):

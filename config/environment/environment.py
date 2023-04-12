@@ -14,23 +14,4 @@ class WindIndex:
     YY_Wnd: list
 
 
-@dataclass
-class NodesNumber:
-    NiWnd: int
-    NjWnd: int
-    NkWnd: int
-    AuxSingle: float
-
-
-@dataclass
-class WindMeshSpacing:
-    DxWnd: float
-    DyWnd: float
-
-
-@dataclass
 class Environment:
-    X_IniWnd: float
-    Y_IniWnd: float
-    X_FinWnd: float
-    Y_FinWnd: float
