@@ -1,14 +1,14 @@
-from typing import TextIO, Union
+from typing import TextIO
 
 from config.business_processor import BusinessConfigProcessor, skip_lines
-from config.fuel.fuel import Fuel
-from config.fuel.fuel_facade import FuelFacade
+from fuel import Fuel
+from fuel_facade import FuelFacade
 
 
 BATCH_OF_LINES_FOR_FUEL_MODEL_CHARACTERISTICS = 19
 
 
-class FuelModelProcessor(BusinessConfigProcessor):
+class FuelModelsProcessor(BusinessConfigProcessor):
 
     def __init__(self, fuel_facade: FuelFacade):
         self.fuel_facade: FuelFacade = fuel_facade
@@ -27,7 +27,7 @@ class FuelModelProcessor(BusinessConfigProcessor):
             if len(fuel_model_characteristics) < BATCH_OF_LINES_FOR_FUEL_MODEL_CHARACTERISTICS:
                 break
 
-            fuel = self.fuel_facade.get_fuel(fuel_model_name, fuel_model_characteristics)
+            fuel = self.fuel_facade.get_fuel_models(fuel_model_name, fuel_model_characteristics)
             fuel_models[fuel_model_id] = fuel
 
             counter += 1

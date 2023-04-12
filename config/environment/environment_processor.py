@@ -2,10 +2,11 @@ from typing import TextIO
 
 from config import BusinessConfigProcessor
 from config.environment.environment_facade import LoadCanyon, LoadNuatmos
-from config.landscape import Landscape
+from config import Landscape
+from environment import Environment
 
 
-class LoadWind(BusinessConfigProcessor):
+"""class LoadWind(BusinessConfigProcessor):
 
     def process(self, file: TextIO):
 
@@ -14,7 +15,7 @@ class LoadWind(BusinessConfigProcessor):
         if wind_model_name[:6] == "Canyon":
             LoadCanyon()
         else:
-            LoadNuatmos()
+            LoadNuatmos()"""
 
 
 def create_fake_environment(landscape: Landscape, default_environment: Environment):
