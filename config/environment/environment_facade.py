@@ -1,10 +1,11 @@
-from abc import ABC, abstractmethod
+
 from dataclasses import dataclass
-from typing import TextIO
+from typing import TextIO, Protocol
 
 import numpy as np
 
-from config.environment.environment import WindIndex, Environment, EnvironmentVariables, WindMeshSpacing
+from config.environment.environment import WindIndex, Environment
+from config.business_processor import skip_lines
 
 
 @dataclass
@@ -21,11 +22,75 @@ class EnvironmentVariables:
     Y_FinWnd: float
 
 
-class LoadWindFacade(ABC):
+class LoadWindFacade(Protocol):
 
-    @abstractmethod
     def get_wind(self, file: TextIO):
         ...
+
+
+class LoadDefaults(LoadWindFacade):
+
+    def get_wind(self, file: TextIO):
+
+        skip_lines(file)
+
+        wind_speed = round(float(file.readline().strip()[0]), 3)
+        wind_direction = round(float(file.readline().strip()[0]), 3)
+        slope_steepness = round(float(file.readline().strip()[0]), 3)
+        aspect = round(float(file.readline().strip()[0]), 3)
+
+        Environment(wind_speed=wind_speed,
+                    wind_direction=wind_direction,
+                    slope_steepness=slope_steepness,
+                    aspect=aspect)
+
+
+class LoadModels(LoadWindFacade):
+
+    def get_wind(self, file: TextIO):
+
+        wind_model_name = file.readline().strip()
+
+        if wind_model_name[:6] == "Canyon":
+            nodes = list(map(float, file.readline().split()))
+            EnvironmentVariables.NiWnd, EnvironmentVariables.NjWnd, EnvironmentVariables.NkWnd = list(map(int, nodes[:3]))
+            EnvironmentVariables.AuxSingle = nodes[3]
+            self.wind_matrix_dimensioning()
+            WindIndex.X_Wnd[0], WindIndex.Y_Wnd[0], EnvironmentVariables.DxWnd = map(float, file.readline().split(","))
+            EnvironmentVariables.DyWnd = EnvironmentVariables.DxWnd
+            self.remove_fictitious_nodes()
+
+            for i in range(EnvironmentVariables.NiWnd):
+                for j in range(EnvironmentVariables.NjWnd):
+                    for k in range(EnvironmentVariables.NkWnd):
+                        WindIndex.U[i][j][k], WindIndex.V[i][j][k], WindIndex.W[i][j][k], teijk, edijk, tijk, pijk, \
+                            WindIndex.Z_Wnd[i][j][k] = map(float, file.readline().split(","))
+
+            for i in range(1, EnvironmentVariables.NiWnd):
+                WindIndex.X_Wnd[i] = WindIndex.X_Wnd[0] + i * EnvironmentVariables.DxWnd
+
+            for j in range(1, EnvironmentVariables.NjWnd):
+                WindIndex.Y_Wnd[j] = WindIndex.Y_Wnd[0] + j * EnvironmentVariables.DyWnd
+
+        else:
+            nodes = map(int, file.readline().split())
+            EnvironmentVariables.NiWnd, EnvironmentVariables.NjWnd, EnvironmentVariables.NkWnd = nodes
+            self.wind_matrix_dimensioning()
+
+            self.remove_fictitious_nodes()
+
+            for i in range(EnvironmentVariables.NiWnd):
+                for j in range(EnvironmentVariables.NjWnd):
+                    for k in range(EnvironmentVariables.NkWnd):
+                        WindIndex.X_Wnd[i], WindIndex.Y_Wnd[j], WindIndex.Z_Wnd[i][j][k] = \
+                            map(float, file.readline().split())
+                        WindIndex.U[i][j][k], WindIndex.V[i][j][k], WindIndex.W[i][j][k] = \
+                            map(float, file.readline().split())
+
+            EnvironmentVariables.DxWnd = WindIndex.X_Wnd[2] - WindIndex.X_Wnd[1]
+            EnvironmentVariables.DyWnd = WindIndex.Y_Wnd[2] - WindIndex.Y_Wnd[1]
+
+        results = self.final_calculations()
 
     def wind_matrix_dimensioning(self):
         # Create and initialize arrays
@@ -128,53 +193,3 @@ class LoadWindFacade(ABC):
 
     def interpol(self, x1, y1, x2, y2, x):
         return y1 + (y2 - y1) / (0.0000000001 + x2 - x1) * (x - x1)
-
-
-class LoadCanyon(LoadWindFacade):
-
-    def get_wind(self, file: TextIO):
-
-        nodes = list(map(float, file.readline().split()))
-        EnvironmentVariables.NiWnd, EnvironmentVariables.NjWnd, EnvironmentVariables.NkWnd = list(map(int, nodes[:3]))
-        EnvironmentVariables.AuxSingle = nodes[3]
-        self.wind_matrix_dimensioning()
-        WindIndex.X_Wnd[0], WindIndex.Y_Wnd[0], WindMeshSpacing.DxWnd = map(float, file.readline().split(","))
-        WindMeshSpacing.DyWnd = WindMeshSpacing.DxWnd
-
-        self.remove_fictitious_nodes()
-
-        for i in range(EnvironmentVariables.NiWnd):
-            for j in range(EnvironmentVariables.NjWnd):
-                for k in range(EnvironmentVariables.NkWnd):
-                    WindIndex.U[i][j][k], WindIndex.V[i][j][k], WindIndex.W[i][j][k], teijk, edijk, tijk, pijk, \
-                        WindIndex.Z_Wnd[i][j][k] = map(float, file.readline().split(","))
-
-        for i in range(1, EnvironmentVariables.NiWnd):
-            WindIndex.X_Wnd[i] = WindIndex.X_Wnd[0] + i * WindMeshSpacing.DxWnd
-
-        for j in range(1, EnvironmentVariables.NjWnd):
-            WindIndex.Y_Wnd[j] = WindIndex.Y_Wnd[0] + j * WindMeshSpacing.DyWnd
-
-        results = self.final_calculations()
-
-
-class LoadNuatmos(LoadWindFacade):
-
-    def get_wind(self, file: TextIO):
-
-        nodes = map(int, file.readline().split())
-        EnvironmentVariables.NiWnd, EnvironmentVariables.NjWnd, EnvironmentVariables.NkWnd = nodes
-        self.wind_matrix_dimensioning()
-
-        self.remove_fictitious_nodes()
-
-        for i in range(EnvironmentVariables.NiWnd):
-            for j in range(EnvironmentVariables.NjWnd):
-                for k in range(EnvironmentVariables.NkWnd):
-                    WindIndex.X_Wnd[i], WindIndex.Y_Wnd[j], WindIndex.Z_Wnd[i][j][k] = \
-                        map(float, file.readline().split())
-                    WindIndex.U[i][j][k], WindIndex.V[i][j][k], WindIndex.W[i][j][k] = \
-                        map(float, file.readline().split())
-
-        WindMeshSpacing.DxWnd = WindIndex.X_Wnd[2] - WindIndex.X_Wnd[1]
-        WindMeshSpacing.DyWnd = WindIndex.Y_Wnd[2] - WindIndex.Y_Wnd[1]

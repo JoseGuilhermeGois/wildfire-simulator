@@ -1,21 +1,19 @@
 from typing import TextIO
 
 from config import BusinessConfigProcessor
-from config.environment.environment_facade import LoadCanyon, LoadNuatmos
+from config.environment.environment_facade import LoadWindFacade
 from config import Landscape
 from environment import Environment
 
 
-"""class LoadWind(BusinessConfigProcessor):
+class EnvironmentProcessor(BusinessConfigProcessor):
+
+    def __init__(self, wind_facade: LoadWindFacade):
+        self.wind_facade = wind_facade
 
     def process(self, file: TextIO):
 
-        wind_model_name = file.readline().strip()
-
-        if wind_model_name[:6] == "Canyon":
-            LoadCanyon()
-        else:
-            LoadNuatmos()"""
+        self.wind_facade.get_wind(file)
 
 
 def create_fake_environment(landscape: Landscape, default_environment: Environment):

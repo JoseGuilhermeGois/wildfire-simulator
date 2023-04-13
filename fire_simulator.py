@@ -2,7 +2,8 @@
 import math
 
 from config import BusinessConfigProcessor, create_fake_environment, Environment, LandscapeProcessor, \
-    FuelModelsProcessor, BaseFuelFacade, DefaultsFuel, IterationsProcessor, IgnitionsProcessor
+    FuelModelsProcessor, BaseFuelFacade, DefaultsFuel, IterationsProcessor, IgnitionsProcessor, EnvironmentProcessor, \
+    LoadDefaults, LoadWindFacade,
 from fire import State, BaseTerrainTopographyFacade, TerrainTopographyBuilder
 
 
@@ -11,21 +12,21 @@ class FireSimulator:
     def __init__(self,
                  landscape_processor: BusinessConfigProcessor,
                  fuel_models_processor: BusinessConfigProcessor,
-                 environment: Environment,
+                 environment_processor: BusinessConfigProcessor,
                  ignition_processor: BusinessConfigProcessor,
                  iterations_processor: BusinessConfigProcessor):
 
         self.landscape_processor = landscape_processor
         self.fuel_models_processor = fuel_models_processor
-        self.environment = environment
+        self.environment_processor = environment_processor
         self.ignition_processor = ignition_processor
         self.iterations_processor = iterations_processor
 
-    def run(self, landscape_filename: str, fuel_models_filename: str, ignition_points_filename: str, iterations_filename: str):
+    def run(self, landscape_filename: str, fuel_models_filename: str, environment_filename: str, ignition_points_filename: str, iterations_filename: str):
 
         landscape = self.landscape_processor.read(landscape_filename)
         fuel_models = self.fuel_models_processor.read(fuel_models_filename)
-        environment = create_fake_environment(landscape, self.environment)
+        environment = self.environment_processor.read(environment_filename)
         ignition_points = self.ignition_processor.read(ignition_points_filename)
         iterations = self.iterations_processor.read(iterations_filename)
 
@@ -39,13 +40,12 @@ class FireSimulator:
 
 
 if __name__ == '__main__':
-    default_environment = Environment(2.22 * 196.9, 345 * math.pi / 180, 0.36, 301 * math.pi / 180)
     defaults_fuel = DefaultsFuel()
 
     fire_simulator = FireSimulator(
         landscape_processor=LandscapeProcessor(),
         fuel_models_processor=FuelModelsProcessor(BaseFuelFacade(defaults_fuel)),
-        environment=default_environment,
+        environment_processor=EnvironmentProcessor(LoadDefaults()),
         ignition_processor=IgnitionsProcessor(),
         iterations_processor=IterationsProcessor()
     )
@@ -53,6 +53,7 @@ if __name__ == '__main__':
     fire_simulator.run(
         landscape_filename="resources/fuel_1m_gestosa.asc",
         fuel_models_filename="resources/fuelmodelsTest.fls",
+        environment_filename="resources/default_wind.asc",
         ignition_points_filename="resources/ignitions.asc",
         iterations_filename="resources/time_step.asc"
     )
