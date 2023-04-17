@@ -45,7 +45,7 @@ if __name__ == '__main__':
     fire_simulator = FireSimulator(
         landscape_processor=LandscapeProcessor(),
         fuel_models_processor=FuelModelsProcessor(BaseFuelFacade(defaults_fuel)),
-        environment_processor=EnvironmentProcessor(LoadDefaults()),
+        environment_processor=EnvironmentProcessor(LoadDefaults(LandscapeProcessor())),
         ignition_processor=IgnitionsProcessor(),
         iterations_processor=IterationsProcessor()
     )

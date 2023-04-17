@@ -6,6 +6,7 @@ import numpy as np
 
 from config.environment.environment import WindIndex, Environment
 from config.business_processor import skip_lines
+from config import Landscape
 
 
 @dataclass
@@ -24,11 +25,14 @@ class EnvironmentVariables:
 
 class LoadWindFacade(Protocol):
 
-    def get_wind(self, file: TextIO):
+    def get_wind(self, file: TextIO) -> list:
         ...
 
 
 class LoadDefaults(LoadWindFacade):
+
+    def __init__(self, terrain_conditions):
+        self.terrain_conditions = terrain_conditions
 
     def get_wind(self, file: TextIO):
 
@@ -39,10 +43,15 @@ class LoadDefaults(LoadWindFacade):
         slope_steepness = round(float(file.readline().strip()[0]), 3)
         aspect = round(float(file.readline().strip()[0]), 3)
 
-        Environment(wind_speed=wind_speed,
-                    wind_direction=wind_direction,
-                    slope_steepness=slope_steepness,
-                    aspect=aspect)
+        default_environment = Environment(wind_speed=wind_speed,
+                                          wind_direction=wind_direction,
+                                          slope_steepness=slope_steepness,
+                                          aspect=aspect)
+
+        return self.create_fake_environment(self.terrain_conditions, default_environment)
+
+    def create_fake_environment(self, landscape: Landscape, default_environment: Environment):
+        return [[default_environment for i in range(landscape.shape.width) for i in range(landscape.shape.length)]]
 
 
 class LoadModels(LoadWindFacade):
