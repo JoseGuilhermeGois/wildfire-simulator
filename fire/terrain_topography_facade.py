@@ -15,7 +15,7 @@ class TerrainTopographyFacade(Protocol):
         ...
 
 
-class BaseTerrainTopographyFacade:
+class BaseTerrainTopographyFacade(TerrainTopographyFacade):
 
     def __init__(self, landscape: Landscape, fuel_models: dict[str, Fuel], environment: list[list[Environment]]):
         self.landscape: Landscape = landscape
@@ -24,7 +24,7 @@ class BaseTerrainTopographyFacade:
 
     def get_element(self, longitude: int, latitude: int) -> Element:
 
-        fuel_model_id = self.landscape.fuel_model_distribution[longitude][latitude]
+        fuel_model_id: str = self.landscape.fuel_model_distribution[longitude][latitude]
         fuel: Fuel = self.fuel_models[fuel_model_id]
 
         if fuel is None:
@@ -35,7 +35,7 @@ class BaseTerrainTopographyFacade:
         area_ij = [[0] * 3, [0] * 2]
         for i in range(len(area_ij)):
             for j in range(len(area_ij[i])):
-                area_ij[i][j] = self.fuel.sav_ratio[i][j] * self.fuel.load[i][j] / self.fuel.particle_density
+                area_ij[i][j] = fuel.sav_ratio[i][j] * fuel.load[i][j] / fuel.particle_density
 
         environment = self.environment[longitude][latitude]
 

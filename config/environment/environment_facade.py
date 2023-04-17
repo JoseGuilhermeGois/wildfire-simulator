@@ -101,6 +101,8 @@ class LoadModels(LoadWindFacade):
 
         results = self.final_calculations()
 
+        return results
+
     def wind_matrix_dimensioning(self):
         # Create and initialize arrays
         WindIndex.X_Wnd = np.zeros(EnvironmentVariables.NiWnd + 1)
