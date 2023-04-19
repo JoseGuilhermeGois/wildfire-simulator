@@ -14,12 +14,10 @@ class State(Enum):
 
 class Element(Protocol):
     state: State
-    location: Location
 
 
 class IncombustibleElement(Element):
     state: State = State.NON_FLAMMABLE
-    location: Location
 
 
 @dataclass
@@ -29,7 +27,7 @@ class CombustibleElement(Element):
     spread_time: int
     aspect: float
     r_0: float
-    r_wind_upslope: float
+    r_wind_up_slope: float
     residence_time: float
     heat_per_unit_area: float
     fireline_intensity_head_fire: float

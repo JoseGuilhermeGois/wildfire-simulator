@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+import numpy as np
 from matplotlib import pyplot, colors
 import matplotlib.animation as anim
 
@@ -23,7 +24,7 @@ def visualize(frames: list[Frame]):
         time_limited_decimals = ["{:.5f}".format(i) for i in time]
         axis.set_title("Plot - Time step: {} = {} min".format(i, time_limited_decimals), fontsize=20)
 
-    animation = anim.FuncAnimation(figure, animate, frames=range(len(data)), interval=1)
+    animation = anim.FuncAnimation(figure, animate, frames=np.arrange(len(data)), interval=1)
     animation.save('output/fire_simulation.gif', dpi=500, writer='imagemagick')
 
     pyplot.close()

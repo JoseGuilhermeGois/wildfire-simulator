@@ -1,8 +1,8 @@
 from typing import TextIO
 
 from config.business_processor import BusinessConfigProcessor, skip_lines
-from fuel import Fuel
-from fuel_facade import FuelFacade
+from .fuel import Fuel
+from .fuel_facade import FuelFacade
 
 
 BATCH_OF_LINES_FOR_FUEL_MODEL_CHARACTERISTICS = 19
@@ -19,7 +19,7 @@ class FuelModelsProcessor(BusinessConfigProcessor):
 
         fuel_models = {}
         counter = 0
-        while True:
+        while counter <= 13:
             fuel_model_name = self.read_fuel_model_metadata(file, counter)
             fuel_model_characteristics = self.fuel_model_characteristics(file)
             fuel_model_id = str(counter)

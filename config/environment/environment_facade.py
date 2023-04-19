@@ -6,7 +6,7 @@ import numpy as np
 
 from config.environment.environment import WindIndex, Environment
 from config.business_processor import skip_lines
-from config import Landscape
+from config.landscape import Landscape
 
 
 @dataclass
@@ -51,7 +51,7 @@ class LoadDefaults(LoadWindFacade):
         return self.create_fake_environment(self.terrain_conditions, default_environment)
 
     def create_fake_environment(self, landscape: Landscape, default_environment: Environment):
-        return [[default_environment for i in range(landscape.shape.width) for i in range(landscape.shape.length)]]
+        return [[default_environment for i in range(landscape.shape.length) for i in range(landscape.shape.width)]]
 
 
 class LoadModels(LoadWindFacade):

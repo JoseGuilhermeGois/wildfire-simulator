@@ -28,7 +28,9 @@ def get_rate_of_spread_direction_gamma(element: CombustibleElement, angle_betwee
     absolute_max_spread_direction = element.aspect + element.max_spread_direction
     absolute_angle_between_elements = angle_between_elements - absolute_max_spread_direction
 
-    rate_of_spread_gamma = element.rate_of_spread_heading_fire * (1 - element.e) / (1 - element.e * math.cos(absolute_angle_between_elements))
+    rate_of_spread_gamma = element.rate_of_spread_heading_fire * (1 - element.e) / (
+            1 - element.e * math.cos(absolute_angle_between_elements))
+
     return rate_of_spread_gamma
 
 

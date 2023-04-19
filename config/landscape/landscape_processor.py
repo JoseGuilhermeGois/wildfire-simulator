@@ -1,11 +1,11 @@
 from typing import TextIO
 
 from config.business_processor import BusinessConfigProcessor, skip_lines
-from landscape import Landscape, Shape, Location
+from .landscape import Landscape, Shape, Location
 
 
-LENGTH_DEFINITION = "ncols"
-WIDTH_DEFINITION = "nrows"
+WIDTH_DEFINITION = "ncols"
+LENGTH_DEFINITION = "nrows"
 LATITUDE_COORDINATE = "xllcorner"
 LONGITUDE_COORDINATE = "yllcorner"
 ELEMENT_SIZE_DEFINITION = "cellsize"
@@ -20,8 +20,8 @@ class LandscapeProcessor(BusinessConfigProcessor):
         :return: Landscape details
         """
         shape = Shape(
-            length=self.get_parameter_value(file, LENGTH_DEFINITION),
-            width=self.get_parameter_value(file, WIDTH_DEFINITION))
+            width=self.get_parameter_value(file, WIDTH_DEFINITION),
+            length=self.get_parameter_value(file, LENGTH_DEFINITION))
 
         location = Location(
             latitude=self.get_parameter_value(file, LATITUDE_COORDINATE),
@@ -37,11 +37,10 @@ class LandscapeProcessor(BusinessConfigProcessor):
 
     @staticmethod
     def get_parameter_value(file: TextIO, definition: str) -> int:
-        var_name, var_value = file.readline().rstrip()
+        line = file.readline().rstrip()
+        var_name, var_value = line.split()
 
         if var_name != definition:
             raise NameError(f"{definition} is missing!")
 
-        return int(var_value)
-
-
+        return var_value

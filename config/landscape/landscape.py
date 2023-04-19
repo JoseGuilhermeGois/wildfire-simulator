@@ -9,8 +9,8 @@ class Location:
 
 @dataclass
 class Shape:
-    length: int
     width: int
+    length: int
 
 
 @dataclass

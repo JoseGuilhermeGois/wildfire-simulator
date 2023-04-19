@@ -1,3 +1,4 @@
+import math
 import sys
 from typing import Protocol
 
@@ -60,44 +61,45 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         net_load = [[0] * 3, [0] * 2]
         for i in range(len(net_load)):
             for j in range(len(net_load[i])):
-                net_load[i][j] = self.fuel.load[i][j] * (1 - self.fuel.total_mineral_content)
+                net_load[i][j] = fuel.load[i][j] * (1 - fuel.total_mineral_content)
 
         # omg0d in Firestation
-        net_load_dead = factor_ij[0][0] * net_load[0][0] + factor_ij[0][1] * net_load[0][1] + factor_ij[0][2] * \
-                        net_load[0][2]
+        net_load_dead = \
+            factor_ij[0][0] * net_load[0][0] + factor_ij[0][1] * net_load[0][1] + factor_ij[0][2] * net_load[0][2]
+
         net_load_live = net_load[1][0] + net_load[1][1]
 
-        heat_content_i = (sum(factor_ij[0]) * self.fuel.heat_content[0], sum(factor_ij[1]) * self.fuel.heat_content[1])
+        heat_content_i = (sum(factor_ij[0]) * fuel.heat_content[0], sum(factor_ij[1]) * fuel.heat_content[1])
 
         if sum(factor_ij[1]) > 0:
-            effective_mineral_content_i = (sum(factor_ij[0]) * self.fuel.effective_mineral_content,
-                                           sum(factor_ij[1]) * self.fuel.effective_mineral_content)
+            effective_mineral_content_i = (sum(factor_ij[0]) * fuel.effective_mineral_content,
+                                           sum(factor_ij[1]) * fuel.effective_mineral_content)
 
             mineral_damping_coff_i = (min(0.174 * effective_mineral_content_i[0] ** (-0.19), 1),
                                       min(0.174 * effective_mineral_content_i[1] ** (-0.19), 1))
         else:
-            effective_mineral_content_i = (sum(factor_ij[0]) * self.fuel.effective_mineral_content, 0)
+            effective_mineral_content_i = (sum(factor_ij[0]) * fuel.effective_mineral_content, 0)
             mineral_damping_coff_i = (min(0.174 * effective_mineral_content_i[0] ** (-0.19), 1), 0)
 
         # aamfd in Firestation
-        moisture_content_i = (factor_ij[0][0] * self.moisture_content[0][0] +
-                              factor_ij[0][1] * self.moisture_content[0][1] +
-                              factor_ij[0][2] * self.moisture_content[0][2],
-                              factor_ij[1][0] * self.moisture_content[1][0] +
-                              factor_ij[1][1] * self.moisture_content[1][1])
+        moisture_content_i = (factor_ij[0][0] * fuel.moisture_content[0][0] +
+                              factor_ij[0][1] * fuel.moisture_content[0][1] +
+                              factor_ij[0][2] * fuel.moisture_content[0][2],
+                              factor_ij[1][0] * fuel.moisture_content[1][0] +
+                              factor_ij[1][1] * fuel.moisture_content[1][1])
 
         # Moisture Extinction
         dead_to_live_load_ratio_num = 0
         fine_dead_fuel_moisture_den = 0
-        for j in range(len(self.fuel.sav_ratio[0])):
-            if self.fuel.sav_ratio[0][j] > 0:
-                dead_to_live_load_ratio_num += self.fuel.load[0][j] * np.exp(-138 / (self.fuel.sav_ratio[0][j]))
-                fine_dead_fuel_moisture_den += self.fuel.load[0][j] * np.exp(-138 / (self.fuel.sav_ratio[0][j]))
+        for j in range(len(fuel.sav_ratio[0])):
+            if fuel.sav_ratio[0][j] > 0:
+                dead_to_live_load_ratio_num += fuel.load[0][j] * np.exp(-138 / (fuel.sav_ratio[0][j]))
+                fine_dead_fuel_moisture_den += fuel.load[0][j] * np.exp(-138 / (fuel.sav_ratio[0][j]))
 
         dead_to_live_load_ratio_den = 0
-        for j in range(len(self.fuel.sav_ratio[1])):
-            if self.fuel.sav_ratio[1][j] > 0:
-                dead_to_live_load_ratio_den += self.fuel.load[1][j] * np.exp(-500 / (self.fuel.sav_ratio[1][j]))
+        for j in range(len(fuel.sav_ratio[1])):
+            if fuel.sav_ratio[1][j] > 0:
+                dead_to_live_load_ratio_den += fuel.load[1][j] * np.exp(-500 / (fuel.sav_ratio[1][j]))
 
         if dead_to_live_load_ratio_den > 0:
             dead_to_live_load_ratio = dead_to_live_load_ratio_num / dead_to_live_load_ratio_den
@@ -105,19 +107,19 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
             dead_to_live_load_ratio = 0
 
         fine_dead_fuel_moisture_num = 0
-        for j in range(len(self.fuel.sav_ratio[0])):
-            if self.fuel.sav_ratio[0][j] > 0:
-                fine_dead_fuel_moisture_num += self.moisture_content[0][j] * self.fuel.load[0][j] * \
-                                               np.exp(-138 / (self.fuel.sav_ratio[0][j]))
+        for j in range(len(fuel.sav_ratio[0])):
+            if fuel.sav_ratio[0][j] > 0:
+                fine_dead_fuel_moisture_num += fuel.moisture_content[0][j] * fuel.load[0][j] * \
+                                               np.exp(-138 / (fuel.sav_ratio[0][j]))
 
         fine_dead_fuel_moisture = fine_dead_fuel_moisture_num / fine_dead_fuel_moisture_den if \
             fine_dead_fuel_moisture_den > 0 else 0
 
         moisture_extinction_live = max(2.9 * dead_to_live_load_ratio *
-                                       (1 - (fine_dead_fuel_moisture / self.fuel.moisture_extinction_dead)) - 0.226,
-                                       self.fuel.moisture_extinction_dead)
+                                       (1 - (fine_dead_fuel_moisture / fuel.moisture_extinction_dead)) - 0.226,
+                                       fuel.moisture_extinction_dead)
 
-        tau_m = [min(moisture_content_i[0] / self.fuel.moisture_extinction_dead, 1),
+        tau_m = [min(moisture_content_i[0] / fuel.moisture_extinction_dead, 1),
                  min(moisture_content_i[1] / moisture_extinction_live, 1)]
 
         moisture_damping_coff_i = [0] * 2
@@ -125,15 +127,15 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
             moisture_damping_coff_i[i] = 1 - 2.59 * tau_m[i] + 5.11 * (tau_m[i] ** 2) - 3.52 * (tau_m[i] ** 3)
 
         # Sigmad(n) in Firestation
-        sav_ratio_i = (factor_ij[0][0] * self.fuel.sav_ratio[0][0] + factor_ij[0][1] * self.fuel.sav_ratio[0][1] +
-                       factor_ij[0][2] * self.fuel.sav_ratio[0][2], factor_ij[1][0] * self.fuel.sav_ratio[1][0] +
-                       factor_ij[1][1] * self.fuel.sav_ratio[1][1])
+        sav_ratio_i = (factor_ij[0][0] * fuel.sav_ratio[0][0] + factor_ij[0][1] * fuel.sav_ratio[0][1] +
+                       factor_ij[0][2] * fuel.sav_ratio[0][2], factor_ij[1][0] * fuel.sav_ratio[1][0] +
+                       factor_ij[1][1] * fuel.sav_ratio[1][1])
 
         sav_ratio_characteristic = factor_i[0] * sav_ratio_i[0] + factor_i[1] * sav_ratio_i[1]
 
-        mean_bulk_density = (sum(self.fuel.load[0]) + sum(self.fuel.load[1])) / self.fuel.bed_depth
+        mean_bulk_density = (sum(fuel.load[0]) + sum(fuel.load[1])) / fuel.bed_depth
 
-        mean_packing_ratio = mean_bulk_density / self.fuel.particle_density
+        mean_packing_ratio = mean_bulk_density / fuel.particle_density
 
         optimum_packing_ratio = 3.348 * sav_ratio_characteristic ** (-0.8189)
 
@@ -145,11 +147,11 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
 
         aaa = 133 * sav_ratio_characteristic ** (-0.7913)
 
-        maximum_reaction_velocity = sav_ratio_characteristic ** 1.5 * (495 + 0.0594 * sav_ratio_characteristic ** 1.5) \
-                                    ** (-1)
+        maximum_reaction_velocity = \
+            sav_ratio_characteristic ** 1.5 * (495 + 0.0594 * sav_ratio_characteristic ** 1.5) ** (-1)
 
-        optimum_reaction_velocity = maximum_reaction_velocity * (relative_packing_ratio ** aaa) * \
-                                    np.exp(aaa * (1 - relative_packing_ratio))
+        optimum_reaction_velocity = \
+            maximum_reaction_velocity * (relative_packing_ratio ** aaa) * np.exp(aaa * (1 - relative_packing_ratio))
 
         reaction_intensity_dead = net_load_dead*heat_content_i[0]*moisture_damping_coff_i[0]*mineral_damping_coff_i[0]
         reaction_intensity_live = net_load_live*heat_content_i[1]*moisture_damping_coff_i[1]*mineral_damping_coff_i[1]
@@ -159,13 +161,13 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         heat_of_pre_ignition_ij = [[0] * 3, [0] * 2]
         for i in range(2):
             for j in range(len(heat_of_pre_ignition_ij[i])):
-                heat_of_pre_ignition_ij[i][j] = 250 + 1116 * self.moisture_content[i][j]
+                heat_of_pre_ignition_ij[i][j] = 250 + 1116 * fuel.moisture_content[i][j]
 
         heat_number_tmp = [0] * 2
         for i in range(len(heat_number_tmp)):
-            heat_number_tmp[i] = factor_i[i] * sum([a * (np.exp(-138 / b) if b > 0 else 0) * c
-                                                     for a, b, c in zip(factor_ij[i], self.fuel.sav_ratio[i],
-                                                                        heat_of_pre_ignition_ij[i])])
+            heat_number_tmp[i] = \
+                factor_i[i] * sum([a * (np.exp(-138 / b) if b > 0 else 0) * c for a, b, c in zip(
+                    factor_ij[i], fuel.sav_ratio[i], heat_of_pre_ignition_ij[i])])
 
         heat_sink = mean_bulk_density * sum(heat_number_tmp)
 
@@ -176,9 +178,9 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         ''' It is now recommended that a wind limit not be imposed (Andrews et al. 2013) (including Rothermel). '''
         # wind_limit = min(self.wind_speed, 96.8 * reaction_intensity ** 1 / 3)
 
-        pi_w = ccc * (self.wind_speed ** bbb) * (relative_packing_ratio ** (-eee))
+        pi_w = ccc * (environment.wind_speed ** bbb) * (relative_packing_ratio ** (-eee))
 
-        pi_s = 5.275 * (mean_packing_ratio ** (-0.3)) * (self.slope_steepness ** 2)
+        pi_s = 5.275 * (mean_packing_ratio ** (-0.3)) * (environment.slope_steepness ** 2)
 
         heat_source = reaction_intensity * propagating_flux_ratio * (1 + pi_w + pi_s)
 
@@ -197,13 +199,13 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         Because the given wind direction is defined as the direction the wind is coming from.
         For this model, we need the direction the wind goes.
         '''
-        wind_direction = self.wind_direction - 180
+        wind_direction = environment.wind_direction - 180
         wind_direction += 360 if wind_direction < 0 else 0
 
         '''
         The upslope direction is the opposite of aspect. 
         '''
-        upslope_direction = self.aspect - 180
+        upslope_direction = environment.aspect - 180
         upslope_direction += 360 if upslope_direction < 0 else 0
 
         # Wind direction ω (omega) relative to upslope (degree)
@@ -309,12 +311,12 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         crown_initiation = 0
 
         return CombustibleElement(
-            location=Location(real_longitude, real_latitude),
+            location=Location(latitude, longitude),
             spread_time=sys.maxsize,
             state=State.FLAMMABLE,
             aspect=environment.aspect,
             r_0=r_0,
-            r_wind_up_slope=,
+            r_wind_up_slope=r_wind_up_slope,
             residence_time=tr,
             heat_per_unit_area=ha,
             fireline_intensity_head_fire=fire_line_intensity_head_fire,
@@ -327,8 +329,4 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
             f=f,
             g=g,
             h=h,
-            crown_initiation=crown_initiation,
-            flame_depth=flame_depth,
-            phi_w=pi_w,
-            upslope_direction=upslope_direction
         )

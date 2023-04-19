@@ -9,7 +9,7 @@ class TerrainTopographyBuilder:
         self.terrain_facade: TerrainTopographyFacade = terrain_topography_facade
 
     def build(self) -> list[list[Element]]:
-        return [self.get_longitude_line_elements(longitude) for longitude in range(self.shape.width)]
+        return [self.get_longitude_line_elements(longitude) for longitude in range(self.shape.length)]
 
     def get_longitude_line_elements(self, longitude):
-        return [self.terrain_facade.get_element(longitude, latitude) for latitude in range(self.shape.length)]
+        return [self.terrain_facade.get_element(longitude, latitude) for latitude in range(self.shape.width)]

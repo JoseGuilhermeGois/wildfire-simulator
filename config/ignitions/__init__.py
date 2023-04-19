@@ -1,1 +1,1 @@
-from ignitions_processor import IgnitionsProcessor
+from .ignitions_processor import IgnitionsProcessor

@@ -1,10 +1,8 @@
 """This file is to run the simulation."""
-import math
 
-from config import BusinessConfigProcessor, create_fake_environment, Environment, LandscapeProcessor, \
-    FuelModelsProcessor, BaseFuelFacade, DefaultsFuel, IterationsProcessor, IgnitionsProcessor, EnvironmentProcessor, \
-    LoadDefaults, LoadWindFacade,
-from fire import State, BaseTerrainTopographyFacade, TerrainTopographyBuilder
+from config import BusinessConfigProcessor, LandscapeProcessor, FuelModelsProcessor, BaseFuelFacade, DefaultsFuel, \
+    IterationsProcessor, IgnitionsProcessor, EnvironmentProcessor, LoadDefaults
+from fire import State, BaseTerrainTopographyFacade, TerrainTopographyBuilder, Fire
 
 
 class FireSimulator:
@@ -22,7 +20,8 @@ class FireSimulator:
         self.ignition_processor = ignition_processor
         self.iterations_processor = iterations_processor
 
-    def run(self, landscape_filename: str, fuel_models_filename: str, environment_filename: str, ignition_points_filename: str, iterations_filename: str):
+    def run(self, landscape_filename: str, fuel_models_filename: str, environment_filename: str,
+            ignition_points_filename: str, iterations_filename: str):
 
         landscape = self.landscape_processor.read(landscape_filename)
         fuel_models = self.fuel_models_processor.read(fuel_models_filename)
@@ -36,7 +35,7 @@ class FireSimulator:
         for longitude, latitude in ignition_points:
             terrain_topography[longitude][latitude].state = State.BURNING
 
-        Fire(Landscape, terrain_topography, iterations).start()
+        Fire(landscape, terrain_topography, iterations).start()
 
 
 if __name__ == '__main__':

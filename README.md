@@ -34,3 +34,4 @@ Configuration folder is to read the files needed for the simulation.
 * '_**get_rate_of_spread_direction_psi**_' method in fire/spread/models.py needs to be refactored.
 * Also **_'get_rate_of_spread_direction_gamma'_** needs small refactor.
 * Remove numpy usages.
+* Check in fire.py and terrain_topography_builder if length and width are being used in the correct way.

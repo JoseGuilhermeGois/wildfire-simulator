@@ -1,135 +1,83 @@
-from simulator.field import FieldState
-from simulator.topography.grid import get_state_grid, get_fuel_grid, create_grid
-from spread import Neighbour
-
-TOTAL_TIME = 100
-
-# ---------------- IMPORTS (OWN FILES) -----------------
-
-from simulator.topography.topography import *
-
-grid = create_grid([(57, 10)])
-
-# ---------------- FIRE SPREAD MODEL -------------------
-
-results = []  # For simulation
-
-print("States at the beginning:")
-print(get_state_grid(grid))
-print()
-print("Fuel Map:")
-print(get_fuel_grid(grid))
-
-elapsed_time_collection = []
-elapsed_time = 0.0
-elapsed_time_collection.append(elapsed_time)
-
-for time in range(0, TOTAL_TIME):
-
-    ignition_times_of_all_cells = []
-
-    calculate_current_ignition_times()
-
-    print()
-    print("Ignition times of all cells:")
-    print(ignition_times_of_all_cells)
-
-    if min(ignition_times_of_all_cells) == sys.maxsize:
-        shortest_ignition_time = 0
-    else:
-        shortest_ignition_time = min(ignition_times_of_all_cells)
-
-    print()
-    print("Shortest ignition time of this time step(min):")
-    print(shortest_ignition_time)
-
-    update_grid()
-
-    elapsed_time += shortest_ignition_time
-    print()
-    print("Elapsed time(min):")
-    print(elapsed_time)
-    elapsed_time_collection.append(round(elapsed_time))
-
-    print()
-    print("States at the end of time: " + str(time))
-    print(get_state_grid(grid))
-    print()
-
-    results.append(get_state_grid(grid))  # For simulation
-
-print("Fuel Map:")
-print(get_fuel_grid(grid))
+from config import Landscape
+from fire import Element, State, CombustibleElement, Frame, visualize
+from .spread import Neighbour, SpreadTimeCalculatorStrategyFactory
 
 
-def calculate_current_ignition_times():
+class Fire:
+    def __init__(self, landscape: Landscape, terrain_topography: list[list[Element]], iterations: int):
+        self.shape = landscape.shape
+        self.element_size: int = landscape.element_size
+        self.terrain_topography: list[list[Element]] = terrain_topography
+        self.iterations = iterations
 
-    # Ignore edges in calculation
-    for y in range(2, GRID_HEIGHT - 2):
-        for x in range(2, GRID_WIDTH - 2):
+    def start(self):
+        frames = [self.frame() for _ in range(self.iterations)]
+        visualize(frames)
 
-            current_cell = grid[y][x]
+    def frame(self):
+        lowest_spread_time = self.update_spread_and_get_lowest()
+        states = self.step_forward_and_return_new_states(time_interval=lowest_spread_time)
+        return Frame(data=states, interval=lowest_spread_time)
 
-            print()
-            print("----rate of spread heading fire(ft/min):----")
-            print(current_cell.rate_of_spread_heading_fire)
+    """ Calculate spread! """
 
-            if current_cell == FieldState.BURNED:
-                current_cell.reset_ignition_time()
+    def update_spread_and_get_lowest(self) -> float:
+        return min(
+            [self.update_longitude_line_spread_times_and_get_lowest(longitude)
+             for longitude in range(self.shape.length)]
+        )
 
-            elif current_cell.state == FieldState.FLAMMABLE:
+    def update_longitude_line_spread_times_and_get_lowest(self, longitude: int) -> float:
+        times = [self.update_coordinate_spread_time(latitude, longitude) for latitude in range(self.shape.width)]
+        return min(filter(lambda item: item is not None, times))
 
-                current_cell.has_burning_neighbor = False
+    def update_coordinate_spread_time(self, latitude: int, longitude: int) -> float | None:
+        element = self.terrain_topography[latitude][longitude]
+        if isinstance(element, CombustibleElement) and element.state == State.FLAMMABLE:
+            spread_time_calculator_strategy_factory = SpreadTimeCalculatorStrategyFactory(element, self.element_size)
+            lowest_spread_time = element.spread_time
+            for neighbour in Neighbour:
+                spread_time_calculator_strategy = spread_time_calculator_strategy_factory.create(neighbour)
+                for neighbour_latitude_offset, neighbour_longitude_offset in neighbour.value:
+                    neighbour_latitude = longitude + neighbour_latitude_offset
+                    neighbour_longitude = latitude + neighbour_longitude_offset
+                    if not self.is_valid_coordinate(neighbour_latitude, neighbour_longitude):
+                        continue
 
-                # List of all ignition times of current cell
-                ignition_times_of_current_cell = []
+                    neighbour_element = self.terrain_topography[neighbour_latitude][neighbour_longitude]
+                    if neighbour_element.state == State.BURNING:
+                        spread_time = spread_time_calculator_strategy.calculate(neighbour_element)
+                        if spread_time is not None and spread_time < lowest_spread_time:
+                            lowest_spread_time = spread_time
+            element.spread_time = lowest_spread_time
+            return element.spread_time
 
-                ignitionTimeCalculatorStrategyFactory = IgnitionTimeCalculatorStrategyFactory(current_cell)
-                for neighbour in Neighbour:
-                    ignition_time_calculator = ignitionTimeCalculatorStrategyFactory.create(neighbour)
-                    for neighbour_row, neighbour_column in neighbour.value:
-                        neighbour_cell = grid[y + neighbour_row][x + neighbour_column]
-                        if neighbour_cell.state == FieldState.BURNING:
-                            ignition_time = ignition_time_calculator.calculate(neighbour_cell)
-                            ignition_times_of_current_cell.append(ignition_time)
+    """ Steps to go forward! To the next step. """
 
-                if ignition_times_of_current_cell:
-                    ignition_times_of_current_cell.append(current_cell.ignition_time)
-                    print("Ignition times of current cell:")
-                    print(ignition_times_of_current_cell)
+    def step_forward_and_return_new_states(self, time_interval: float) -> list[list[float]]:
+        return [self.update_latitude_line_elements(latitude, time_interval) for latitude in range(self.shape.width)]
 
-                    current_cell.ignition_time = min(ignition_times_of_current_cell)
-                    ignition_times_of_all_cells.append(current_cell.ignition_time)
-                #
-                print("Ignition time of current cell(min):")
-                print(current_cell.ignition_time)
+    def update_latitude_line_elements(self, latitude: int, time: float) -> list[float]:
+        return [self.update_coordinate_element(latitude, longitude, time) for longitude in range(self.shape.length)]
 
+    def update_coordinate_element(self, latitude: int, longitude: int, time_interval: float):
+        element = self.terrain_topography[latitude][longitude]
+        if isinstance(element, CombustibleElement):
+            return self.update_combustible_element(element, time_interval)
+        return element.state.value
 
-def update_grid():
-    for y in range(2, GRID_HEIGHT - 2):
-        for x in range(2, GRID_WIDTH - 2):
+    def update_combustible_element(self, element: CombustibleElement, time_interval: float):
+        if element.state == State.FLAMMABLE:
+            element.spread_time -= time_interval
+            if element.spread_time <= 0:
+                element.state = State.BURNING
 
-            current_cell = grid[y][x]
+        elif element.state == State.BURNING:
+            element.residence_time -= time_interval
+            if element.residence_time <= 0:
+                element.state = State.BURNED
 
-            # Update ignition time
-            if current_cell.ignition_time is not None:
-                current_cell.ignition_time = current_cell.ignition_time - shortest_ignition_time
+        return element.state.value
 
-            # Update state
-            if current_cell.state == FieldState.BURNING:
-
-                if current_cell.residence_time <= shortest_ignition_time:
-                    current_cell.set_state(FieldState.BURNED)
-                    current_cell.residence_time = None
-                    current_cell.reset_ignition_time()
-
-                elif current_cell.residence_time > shortest_ignition_time:
-
-                    current_cell.residence_time -= shortest_ignition_time
-
-            elif current_cell.state == FieldState.FLAMMABLE and current_cell.ignition_time <= 0 and current_cell.ignition_time != None:
-                current_cell.set_state(FieldState.BURNING)
-
-            # print()
-            # print('ignition_time_after_reducing_shortest_ignition_time:')
-            # print(current_cell.ignition_time)
+    def is_valid_coordinate(self, latitude: int, longitude: int) -> bool:
+        return latitude in range(self.shape.width) and longitude in range(self.shape.length)

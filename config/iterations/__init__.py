@@ -1,1 +1,1 @@
-from iterations_processor import IterationsProcessor
+from .iterations_processor import IterationsProcessor
