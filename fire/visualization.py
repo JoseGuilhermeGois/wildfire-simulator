@@ -1,32 +1,30 @@
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib import animation
-from matplotlib import colors
+from dataclasses import dataclass
+
+from matplotlib import pyplot, colors
+import matplotlib.animation as anim
 
 
-TOTAL_TIME = 100
-
-from simulator.global_variables import TOTAL_TIME
-
-figure, axis = plt.subplots(figsize=(5, 8))
-colormap = colors.ListedColormap(['blue', 'green', 'red', 'darkred'])
+@dataclass
+class Frame:
+    data: list[list[float]]
+    interval: float
 
 
-def animate(i):
-    norm = results[i]
-    axis.imshow(norm, cmap=colormap, vmin=0, vmax=3)
-    axis.set_title("Plot2 - Time step: {} = {} min".format(i, elapsed_time_collection[i]),
-                   fontsize=20)  # TODO: elapsed time on the simulation, check it
+def visualize(frames: list[Frame]):
+    data = [frame.data for frame in frames]
+    time = [0.0] + [frame.interval for frame in frames]
 
+    figure, axis = plt.subplots(figsize=(5, 8))
+    colormap = colors.ListedColormap(['blue', 'green', 'red', 'darkred'])
 
-axis.set_xticks([])
-axis.set_yticks([])
+    def animate(i):
+        norm = data[i]
+        axis.imshow(norm, cmap=colormap, vmin=0, vmax=3)
+        time_limited_decimals = ["{:.5f}".format(i) for i in time]
+        axis.set_title("Plot - Time step: {} = {} min".format(i, time_limited_decimals), fontsize=20)
 
-plt.xlabel("67 m")
-plt.ylabel("31 m")
+    animation = anim.FuncAnimation(figure, animate, frames=range(len(data)), interval=1)
+    animation.save('output/fire_simulation.gif', dpi=500, writer='imagemagick')
 
-animation = animation.FuncAnimation(figure, animate, frames=np.arange(0, TOTAL_TIME), interval=5)
-animation.save('fire_simulation.gif', dpi=80, writer='imagemagick')
-
-plt.close()
-print("finished")
+    pyplot.close()
+    print("finished")

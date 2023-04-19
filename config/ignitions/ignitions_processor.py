@@ -6,6 +6,5 @@ from config import BusinessConfigProcessor, skip_lines
 class IgnitionsProcessor(BusinessConfigProcessor):
 
     def process(self, file: TextIO) -> list:
-        skip_lines(file)
 
-        return file.readline().split(',')
+        return [file.readline().split(',') for 1 in file]

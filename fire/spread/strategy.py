@@ -1,12 +1,12 @@
 import math
 from abc import ABC, abstractmethod
-from fire.element import Element
+from fire.element import CombustibleElement
 from fire.spread import Neighbour, get_rate_of_spread
 
 
 class SpreadTimeCalculatorStrategyFactory:
 
-    def __init__(self, central_element: Element, element_size: float):
+    def __init__(self, central_element: CombustibleElement, element_size: float):
         self.central_element = central_element
         self.element_size = element_size
 
@@ -23,7 +23,7 @@ class SpreadTimeCalculatorStrategyFactory:
 
 class SpreadTimeCalculatorStrategy(ABC):
 
-    def __init__(self, central_element: Element, element_size: float):
+    def __init__(self, central_element: CombustibleElement, element_size: float):
         self.central_element = central_element
         self.element_size = element_size
 
@@ -31,17 +31,17 @@ class SpreadTimeCalculatorStrategy(ABC):
     def distance(self) -> float:
         raise NotImplementedError
 
-    def calculate(self, neighbour_element: Element) -> float:
+    def calculate(self, neighbour_element: CombustibleElement) -> float | None:
         rate_of_spread = get_rate_of_spread(element1=self.central_element, element2=neighbour_element)
-        if not rate_of_spread:
-            return self.distance() / rate_of_spread
+        if rate_of_spread == 0:
+            return None
 
-        # return self.central_element.reset_ignition_time()
+        return self.distance() / rate_of_spread
 
 
 class AdjacentNeighbourSpreadTimeCalculator(SpreadTimeCalculatorStrategy):
 
-    def __init__(self, central_element: Element, element_size: float):
+    def __init__(self, central_element: CombustibleElement, element_size: float):
         super().__init__(central_element, element_size)
 
     def distance(self) -> float:
@@ -50,7 +50,7 @@ class AdjacentNeighbourSpreadTimeCalculator(SpreadTimeCalculatorStrategy):
 
 class DiagonalNeighbourSpreadTimeCalculator(SpreadTimeCalculatorStrategy):
 
-    def __init__(self, central_element: Element, element_size: float):
+    def __init__(self, central_element: CombustibleElement, element_size: float):
         super().__init__(central_element, element_size)
 
     def distance(self) -> float:
@@ -59,7 +59,7 @@ class DiagonalNeighbourSpreadTimeCalculator(SpreadTimeCalculatorStrategy):
 
 class DistantNeighbourSpreadTimeCalculator(SpreadTimeCalculatorStrategy):
 
-    def __init__(self, central_element: Element, element_size: float):
+    def __init__(self, central_element: CombustibleElement, element_size: float):
         super().__init__(central_element, element_size)
 
     def distance(self) -> float:

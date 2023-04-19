@@ -26,3 +26,11 @@ Configuration folder is to read the files needed for the simulation.
    2. landscape_processor.py
        - This is where we read the file.
        - First we read the shape, then location and then element size.
+
+
+### Major tech debt
+* **_CombustibleElement_** property names need to be changed to more informative names.
+* '_**get_element**_' method in terrain_topography_facade.py needs to be refactored.
+* '_**get_rate_of_spread_direction_psi**_' method in fire/spread/models.py needs to be refactored.
+* Also **_'get_rate_of_spread_direction_gamma'_** needs small refactor.
+* Remove numpy usages.
