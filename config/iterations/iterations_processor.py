@@ -9,4 +9,4 @@ class IterationsProcessor(BusinessConfigProcessor):
 
         skip_lines(file)
 
-        return int(file.readline().split()[0])
+        return file.readline().split()

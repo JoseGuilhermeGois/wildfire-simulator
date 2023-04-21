@@ -6,7 +6,7 @@ import numpy as np
 
 from config.environment import Environment
 from config.fuel import Fuel
-from fire.element import Element, State, IncombustibleElement, CombustibleElement
+from fire.element import CombustibleElement, IncombustibleElement, Element, State
 from config.landscape import Landscape, Location
 
 
@@ -27,8 +27,9 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
 
         fuel_model_id: str = self.landscape.fuel_model_distribution[longitude][latitude]
         fuel: Fuel = self.fuel_models[fuel_model_id]
+        environment_values: Environment = self.environment[longitude][latitude]
 
-        if fuel is None:
+        if fuel is None or fuel_model_id == '0':
             return IncombustibleElement()
 
         # Weighting factors calculations
@@ -37,8 +38,6 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         for i in range(len(area_ij)):
             for j in range(len(area_ij[i])):
                 area_ij[i][j] = fuel.sav_ratio[i][j] * fuel.load[i][j] / fuel.particle_density
-
-        environment = self.environment[longitude][latitude]
 
         # Mean total surface area of the live and dead categories
         area_i = (sum(area_ij[0]), sum(area_ij[1]))
@@ -178,9 +177,9 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         ''' It is now recommended that a wind limit not be imposed (Andrews et al. 2013) (including Rothermel). '''
         # wind_limit = min(self.wind_speed, 96.8 * reaction_intensity ** 1 / 3)
 
-        pi_w = ccc * (environment.wind_speed ** bbb) * (relative_packing_ratio ** (-eee))
+        pi_w = ccc * (environment_values.wind_speed ** bbb) * (relative_packing_ratio ** (-eee))
 
-        pi_s = 5.275 * (mean_packing_ratio ** (-0.3)) * (environment.slope_steepness ** 2)
+        pi_s = 5.275 * (mean_packing_ratio ** (-0.3)) * (environment_values.slope_steepness ** 2)
 
         heat_source = reaction_intensity * propagating_flux_ratio * (1 + pi_w + pi_s)
 
@@ -199,13 +198,13 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         Because the given wind direction is defined as the direction the wind is coming from.
         For this model, we need the direction the wind goes.
         '''
-        wind_direction = environment.wind_direction - 180
+        wind_direction = environment_values.wind_direction - 180
         wind_direction += 360 if wind_direction < 0 else 0
 
         '''
         The upslope direction is the opposite of aspect. 
         '''
-        upslope_direction = environment.aspect - 180
+        upslope_direction = environment_values.aspect - 180
         upslope_direction += 360 if upslope_direction < 0 else 0
 
         # Wind direction ω (omega) relative to upslope (degree)
@@ -314,7 +313,7 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
             location=Location(latitude, longitude),
             spread_time=sys.maxsize,
             state=State.FLAMMABLE,
-            aspect=environment.aspect,
+            aspect=environment_values.aspect,
             r_0=r_0,
             r_wind_up_slope=r_wind_up_slope,
             residence_time=tr,

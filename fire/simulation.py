@@ -1,6 +1,7 @@
 from config import Landscape
-from fire import Element, State, CombustibleElement, Frame, visualize
-from .spread import Neighbour, SpreadTimeCalculatorStrategyFactory
+from fire.element import Element, CombustibleElement, State
+from fire.visualization import visualize, Frame
+from fire.spread import Neighbour, SpreadTimeCalculatorStrategyFactory
 
 
 class Fire:
@@ -28,23 +29,23 @@ class Fire:
         )
 
     def update_longitude_line_spread_times_and_get_lowest(self, longitude: int) -> float:
-        times = [self.update_coordinate_spread_time(latitude, longitude) for latitude in range(self.shape.width)]
+        times = [self.update_coordinate_spread_time(longitude, latitude) for latitude in range(self.shape.width)]
         return min(filter(lambda item: item is not None, times))
 
-    def update_coordinate_spread_time(self, latitude: int, longitude: int) -> float | None:
-        element = self.terrain_topography[latitude][longitude]
+    def update_coordinate_spread_time(self, longitude: int, latitude: int) -> float | None:
+        element = self.terrain_topography[longitude][latitude]
         if isinstance(element, CombustibleElement) and element.state == State.FLAMMABLE:
             spread_time_calculator_strategy_factory = SpreadTimeCalculatorStrategyFactory(element, self.element_size)
             lowest_spread_time = element.spread_time
             for neighbour in Neighbour:
                 spread_time_calculator_strategy = spread_time_calculator_strategy_factory.create(neighbour)
-                for neighbour_latitude_offset, neighbour_longitude_offset in neighbour.value:
-                    neighbour_latitude = longitude + neighbour_latitude_offset
-                    neighbour_longitude = latitude + neighbour_longitude_offset
-                    if not self.is_valid_coordinate(neighbour_latitude, neighbour_longitude):
+                for neighbour_longitude_offset, neighbour_latitude_offset in neighbour.value:
+                    neighbour_longitude = longitude + neighbour_longitude_offset
+                    neighbour_latitude = latitude + neighbour_latitude_offset
+                    if not self.is_valid_coordinate(neighbour_longitude, neighbour_latitude):
                         continue
 
-                    neighbour_element = self.terrain_topography[neighbour_latitude][neighbour_longitude]
+                    neighbour_element = self.terrain_topography[neighbour_longitude][neighbour_latitude]
                     if neighbour_element.state == State.BURNING:
                         spread_time = spread_time_calculator_strategy.calculate(neighbour_element)
                         if spread_time is not None and spread_time < lowest_spread_time:
@@ -54,14 +55,15 @@ class Fire:
 
     """ Steps to go forward! To the next step. """
 
-    def step_forward_and_return_new_states(self, time_interval: float) -> list[list[float]]:
-        return [self.update_latitude_line_elements(latitude, time_interval) for latitude in range(self.shape.width)]
+    def step_forward_and_return_new_states(self, time_interval: float) -> list[list[int]]:
+        return [self.update_latitude_line_elements(longitude, time_interval) for longitude in range(self.shape.length)]
 
-    def update_latitude_line_elements(self, latitude: int, time: float) -> list[float]:
-        return [self.update_coordinate_element(latitude, longitude, time) for longitude in range(self.shape.length)]
+    def update_latitude_line_elements(self, longitude: int, time_interval: float) -> list[int]:
+        return [
+            self.update_coordinate_element(longitude, latitude, time_interval) for latitude in range(self.shape.width)]
 
-    def update_coordinate_element(self, latitude: int, longitude: int, time_interval: float):
-        element = self.terrain_topography[latitude][longitude]
+    def update_coordinate_element(self, longitude: int, latitude: int, time_interval: float):
+        element = self.terrain_topography[longitude][latitude]
         if isinstance(element, CombustibleElement):
             return self.update_combustible_element(element, time_interval)
         return element.state.value
@@ -79,5 +81,5 @@ class Fire:
 
         return element.state.value
 
-    def is_valid_coordinate(self, latitude: int, longitude: int) -> bool:
+    def is_valid_coordinate(self, longitude: int, latitude: int) -> bool:
         return latitude in range(self.shape.width) and longitude in range(self.shape.length)

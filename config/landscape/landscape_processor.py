@@ -20,23 +20,26 @@ class LandscapeProcessor(BusinessConfigProcessor):
         :return: Landscape details
         """
         shape = Shape(
-            width=self.get_parameter_value(file, WIDTH_DEFINITION),
-            length=self.get_parameter_value(file, LENGTH_DEFINITION))
+            width=int(self.get_parameter_value(file, WIDTH_DEFINITION)),
+            length=int(self.get_parameter_value(file, LENGTH_DEFINITION)))
 
         location = Location(
-            latitude=self.get_parameter_value(file, LATITUDE_COORDINATE),
-            longitude=self.get_parameter_value(file, LONGITUDE_COORDINATE))
+            latitude=float(self.get_parameter_value(file, LATITUDE_COORDINATE)),
+            longitude=float(self.get_parameter_value(file, LONGITUDE_COORDINATE)))
 
-        element_size = self.get_parameter_value(file, ELEMENT_SIZE_DEFINITION)
+        element_size = int(self.get_parameter_value(file, ELEMENT_SIZE_DEFINITION))
 
         skip_lines(file)
 
-        fuel_model_distribution = [line.rsplit() for line in file]
+        fuel_model_reader = [line.rsplit() for line in file]
+        fuel_model_distribution = fuel_model_reader[:shape.length]
+        for i in range(len(fuel_model_distribution)):
+            fuel_model_distribution[i] = fuel_model_distribution[i][:shape.width]
 
         return Landscape(shape, location, element_size, fuel_model_distribution)
 
     @staticmethod
-    def get_parameter_value(file: TextIO, definition: str) -> int:
+    def get_parameter_value(file: TextIO, definition: str) -> str:
         line = file.readline().rstrip()
         var_name, var_value = line.split()
 

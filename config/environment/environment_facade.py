@@ -6,7 +6,7 @@ import numpy as np
 
 from config.environment.environment import WindIndex, Environment
 from config.business_processor import skip_lines
-from config.landscape import Landscape
+from config.landscape import Shape
 
 
 @dataclass
@@ -31,10 +31,10 @@ class LoadWindFacade(Protocol):
 
 class LoadDefaults(LoadWindFacade):
 
-    def __init__(self, terrain_conditions):
-        self.terrain_conditions = terrain_conditions
+    def __init__(self, shape: Shape):
+        self.shape: Shape = shape
 
-    def get_wind(self, file: TextIO):
+    def get_wind(self, file: TextIO) -> list[list[Environment]]:
 
         skip_lines(file)
 
@@ -48,10 +48,7 @@ class LoadDefaults(LoadWindFacade):
                                           slope_steepness=slope_steepness,
                                           aspect=aspect)
 
-        return self.create_fake_environment(self.terrain_conditions, default_environment)
-
-    def create_fake_environment(self, landscape: Landscape, default_environment: Environment):
-        return [[default_environment for i in range(landscape.shape.length) for i in range(landscape.shape.width)]]
+        return [[default_environment for _ in range(self.shape.width)] for _ in range(self.shape.length)]
 
 
 class LoadModels(LoadWindFacade):
@@ -157,50 +154,3 @@ class LoadModels(LoadWindFacade):
                                                          WindIndex.Z_Wnd[i][j + 1][1])
 
         return WindIndex.XX_Wnd, WindIndex.YY_Wnd, WindIndex.ZZ_Wnd
-
-    def interpol_wind_speed(self):
-        CrdX = X_IniDtm + (i - 1) * DxDtm + 0.5 * DxDtm
-        CrdY = Y_IniDtm + (j - 1) * DyDtm + 0.5 * DyDtm
-
-        iv = int((CrdX - X_IniWnd) / DxWnd + 0.5)
-        jv = int((CrdY - Y_IniWnd) / DyWnd + 0.5)
-
-        if (iv < 0 or iv >= NiWnd - 0 or jv < 0 or jv >= NjWnd - 0):
-            Vel_U, Vel_V, Vel_W = 0, 0, 0
-            return
-
-        xv1 = XX_Wnd[iv]
-        xv2 = XX_Wnd[iv + 1]
-        yv1 = YY_Wnd[jv]
-        yv2 = YY_Wnd[jv + 1]
-
-        Altura = ZZ_Wnd[iv, jv, 1]
-        flngt = FlmLngt(ModeloComb[i, j])
-        veglngt = deltaD(ModeloComb[i, j])
-
-        # ------ Calculation of the U wind speed -------
-        velfga = interpol(yv1, U[iv, jv, 1], yv2, U[iv, jv + 1, 1], CrdY)
-        velfgb = interpol(yv1, U[iv + 1, jv, 1], yv2, U[iv + 1, jv + 1, 1], CrdY)
-        result = interpol(xv1, velfga, xv2, velfgb, CrdX)
-        Vel_U = result * (1 + 0.36 * veglngt / flngt) / (log((Altura + 0.36 * veglngt) / (0.13 * veglngt))) * (
-                log((flngt / veglngt + 0.36) / 0.13) - 1)
-
-        # ------ Calculation of the V wind speed -------
-        velfga = interpol(yv1, V[iv, jv, 1], yv2, V[iv, jv + 1, 1], CrdY)
-        velfgb = interpol(yv1, V[iv + 1, jv, 1], yv2, V[iv + 1, jv + 1, 1], CrdY)
-        result = interpol(xv1, velfga, xv2, velfgb, CrdX)
-        Vel_V = result * (1.0 + 0.36 * veglngt / flngt) / (np.log((Altura + 0.36 * veglngt) / (0.13 * veglngt))) * (
-                np.log((flngt / veglngt + 0.36) / 0.13) - 1.0)
-
-        # ------ Calculation of the W wind speed -------
-        velfga = interpol(yv1, W[iv, jv, 1], yv2, W[iv, jv + 1, 1], CrdY)
-        velfgb = interpol(yv1, W[iv + 1, jv, 1], yv2, W[iv + 1, jv + 1, 1], CrdY)
-        result = interpol(xv1, velfga, xv2, velfgb, CrdX)
-
-        Vel_W = result * (1.0 + 0.36 * veglngt / flngt) / (np.log((Altura + 0.36 * veglngt) / (0.13 * veglngt))) * (
-                np.log((flngt / veglngt + 0.36) / 0.13) - 1.0)
-
-        return Vel_U, Vel_V, Vel_W
-
-    def interpol(self, x1, y1, x2, y2, x):
-        return y1 + (y2 - y1) / (0.0000000001 + x2 - x1) * (x - x1)

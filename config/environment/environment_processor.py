@@ -11,4 +11,4 @@ class EnvironmentProcessor(BusinessConfigProcessor):
 
     def process(self, file: TextIO):
 
-        self.wind_facade.get_wind(file)
+        return self.wind_facade.get_wind(file)

@@ -19,7 +19,7 @@ class FuelModelsProcessor(BusinessConfigProcessor):
 
         fuel_models = {}
         counter = 0
-        while counter <= 13:
+        while counter < 8:
             fuel_model_name = self.read_fuel_model_metadata(file, counter)
             fuel_model_characteristics = self.fuel_model_characteristics(file)
             fuel_model_id = str(counter)

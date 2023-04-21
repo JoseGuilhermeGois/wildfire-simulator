@@ -27,13 +27,19 @@ class FireSimulator:
         fuel_models = self.fuel_models_processor.read(fuel_models_filename)
         environment = self.environment_processor.read(environment_filename)
         ignition_points = self.ignition_processor.read(ignition_points_filename)
-        iterations = self.iterations_processor.read(iterations_filename)
+        iterations = int(self.iterations_processor.read(iterations_filename)[0])
 
         terrain_topography_facade = BaseTerrainTopographyFacade(landscape, fuel_models, environment)
         terrain_topography = TerrainTopographyBuilder(landscape.shape, terrain_topography_facade).build()
 
-        for longitude, latitude in ignition_points:
-            terrain_topography[longitude][latitude].state = State.BURNING
+        for pair in ignition_points:
+            try:
+                latitude, longitude = pair
+            except ValueError:
+                list_length = len(pair)
+                raise RuntimeError("Length of the pair ({}) is not 2.".format(list_length))
+
+            terrain_topography[int(longitude)][int(latitude)].state = State.BURNING
 
         Fire(landscape, terrain_topography, iterations).start()
 
@@ -41,17 +47,20 @@ class FireSimulator:
 if __name__ == '__main__':
     defaults_fuel = DefaultsFuel()
 
+    landscape_variables = LandscapeProcessor()
+    landscape_env = landscape_variables.read("resources/fuel_1m_gestosa.asc")
+
     fire_simulator = FireSimulator(
         landscape_processor=LandscapeProcessor(),
         fuel_models_processor=FuelModelsProcessor(BaseFuelFacade(defaults_fuel)),
-        environment_processor=EnvironmentProcessor(LoadDefaults(LandscapeProcessor())),
+        environment_processor=EnvironmentProcessor(LoadDefaults(landscape_env.shape)),
         ignition_processor=IgnitionsProcessor(),
         iterations_processor=IterationsProcessor()
     )
 
     fire_simulator.run(
         landscape_filename="resources/fuel_1m_gestosa.asc",
-        fuel_models_filename="resources/fuelmodelsTest.fls",
+        fuel_models_filename="resources/LopesFuelModels.fls",
         environment_filename="resources/default_wind.asc",
         ignition_points_filename="resources/ignitions.asc",
         iterations_filename="resources/time_step.asc"
