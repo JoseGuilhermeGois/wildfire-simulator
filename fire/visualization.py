@@ -12,8 +12,11 @@ class Frame:
 
 
 def visualize(frames: list[Frame]):
+    time_counter = 0
+    time = []
     data = [frame.data for frame in frames]
-    time = [0.0] + [frame.interval for frame in frames]
+
+    time = [sum(frame.interval for frame in frames[:i]) for i, _ in enumerate(frames)]
 
     fig, ax = plt.subplots(figsize=(5, 8))
     colormap = colors.ListedColormap(['blue', 'green', 'red', 'darkred'])
@@ -22,7 +25,7 @@ def visualize(frames: list[Frame]):
         norm = data[i]
         ax.imshow(norm, cmap=colormap, vmin=0, vmax=3)
         time_limited_decimals = ["{:.5f}".format(i) for i in time]
-        ax.set_title("Plot - Time step: {} = {} min".format(i, time_limited_decimals), fontsize=20)
+        ax.set_title("Plot - Time step: {} = {} min".format(i, time_limited_decimals[i]), fontsize=20)
 
     ax.set_xticks([])
     ax.set_yticks([])
