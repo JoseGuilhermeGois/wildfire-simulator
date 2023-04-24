@@ -328,4 +328,5 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
             f=f,
             g=g,
             h=h,
+            upslope_direction=upslope_direction
         )

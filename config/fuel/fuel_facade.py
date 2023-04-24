@@ -96,10 +96,10 @@ class BaseFuelFacade(FuelFacade):
                 oven_dry_fuel_load_live_herb: float) -> tuple:
 
         raw_fuel_load_dead = (oven_dry_fuel_load_dead_1h, oven_dry_fuel_load_dead_10h, oven_dry_fuel_load_dead_100h)
-        fuel_load_dead = tuple(map(lambda x: x / SAV_RATIO_CONSTANT, raw_fuel_load_dead))
+        fuel_load_dead = tuple(map(lambda x: x / LOAD_CONSTANT, raw_fuel_load_dead))
 
         raw_fuel_load_live = (oven_dry_fuel_load_live_herb, self.defaults.OVEN_DRY_FUEL_LOAD_LIVE_WOOD_DEFAULT)
-        fuel_load_live = tuple(map(lambda x: x / SAV_RATIO_CONSTANT, raw_fuel_load_live))
+        fuel_load_live = tuple(map(lambda x: x / LOAD_CONSTANT, raw_fuel_load_live))
 
         return tuple([fuel_load_dead, fuel_load_live])
 

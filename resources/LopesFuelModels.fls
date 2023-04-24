@@ -99,24 +99,24 @@ PPIN3
  4.9          **flmlngt--flamelength-(m)
  1800         **Decaytime--(min)
  .5           **InitialRHRFact--(min)
-M1
- .439         **omg0-----Ovendry.fuel-loading-dead1h
- 0            **omg0-----Ovendry.fuel-loading-dead10h
- 0            **omg0-----Ovendry.fuel-loading-dead100h
- 1            **omg0-----Ovendry.fuel-loading-live
- 4.6          **delta----fuel-depth-dead
- 4.6          **delta----fuel-depth-live
- 56           **sigma----fuel-particle-surf.-area-to-volume-ratio-dead
- 56           **sigma----fuel-particle-surf.-area-to-volume-ratio-live
- 23235        **heatcnt--fuel-particle-low-heat-content-dead-(kJ/kg)
- 23235        **heatcnt--fuel-particle-low-heat-content-live-(kJ/kg)
- 10           **amf------fuel-particle-moisture-content-dead1h
- 10           **amf------fuel-particle-moisture-content-dead10h
- 10           **amf------fuel-particle-moisture-content-dead100h
- 10           **amf------fuel-particle-moisture-content-live
- 35           **amxD-----moisture-content-of-extinction
- 38           **fuelcolor
- 4.9          **flmlngt--flamelength-(m)
+M1(PPIN_02)
+ 0.6        **omg0-----Ovendry.fuel-loading-dead1h
+ 0.5            **omg0-----Ovendry.fuel-loading-dead10h
+ 0.2            **omg0-----Ovendry.fuel-loading-dead100h
+ 0            **omg0-----Ovendry.fuel-loading-live
+ 0.35          **delta----fuel-depth-dead
+ 0.35          **delta----fuel-depth-live
+ 60           **sigma----fuel-particle-surf.-area-to-volume-ratio-dead
+ 0           **sigma----fuel-particle-surf.-area-to-volume-ratio-live
+ 21000        **heatcnt--fuel-particle-low-heat-content-dead-(kJ/kg)
+ 21000        **heatcnt--fuel-particle-low-heat-content-live-(kJ/kg)
+ 6           **amf------fuel-particle-moisture-content-dead1h
+ 7           **amf------fuel-particle-moisture-content-dead10h
+ 8           **amf------fuel-particle-moisture-content-dead100h
+ 85           **amf------fuel-particle-moisture-content-live
+ 50           **amxD-----moisture-content-of-extinction
+ 6027658           **fuelcolor
+ 6          **flmlngt--flamelength-(m)
  1800         **Decaytime--(min)
  .5           **InitialRHRFact--(min)
 M1

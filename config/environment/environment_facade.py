@@ -1,4 +1,4 @@
-
+import math
 from dataclasses import dataclass
 from typing import TextIO, Protocol
 
@@ -38,10 +38,10 @@ class LoadDefaults(LoadWindFacade):
 
         skip_lines(file)
 
-        wind_speed = round(float(file.readline().strip()[0]), 3)
-        wind_direction = round(float(file.readline().strip()[0]), 3)
-        slope_steepness = round(float(file.readline().strip()[0]), 3)
-        aspect = round(float(file.readline().strip()[0]), 3)
+        wind_speed = round(float(file.readline().split()[0]), 4) * 196.9
+        wind_direction = 180 - round(float(file.readline().split()[0]), 4)
+        slope_steepness = math.tan(math.radians(round(float(file.readline().split()[0]), 4)))
+        aspect = 180 - round(float(file.readline().split()[0]), 4)
 
         default_environment = Environment(wind_speed=wind_speed,
                                           wind_direction=wind_direction,
