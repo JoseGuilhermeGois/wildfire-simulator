@@ -1,5 +1,6 @@
 import math
 from abc import ABC, abstractmethod
+
 from fire.element import CombustibleElement
 from fire.spread import Neighbour, get_rate_of_spread
 

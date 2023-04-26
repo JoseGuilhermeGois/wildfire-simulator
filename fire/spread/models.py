@@ -1,5 +1,4 @@
 import math
-
 import numpy as np
 
 from fire.element import CombustibleElement

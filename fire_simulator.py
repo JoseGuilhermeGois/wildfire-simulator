@@ -12,22 +12,25 @@ class FireSimulator:
                  fuel_models_processor: BusinessConfigProcessor,
                  environment_processor: BusinessConfigProcessor,
                  ignition_processor: BusinessConfigProcessor,
-                 iterations_processor: BusinessConfigProcessor):
+                 iterations_processor: BusinessConfigProcessor,
+                 elevation_processor: BusinessConfigProcessor):
 
         self.landscape_processor = landscape_processor
         self.fuel_models_processor = fuel_models_processor
         self.environment_processor = environment_processor
         self.ignition_processor = ignition_processor
         self.iterations_processor = iterations_processor
+        self.elevation_processor = elevation_processor
 
     def run(self, landscape_filename: str, fuel_models_filename: str, environment_filename: str,
-            ignition_points_filename: str, iterations_filename: str):
+            ignition_points_filename: str, iterations_filename: str, elevation_filename: str):
 
         landscape = self.landscape_processor.read(landscape_filename)
         fuel_models = self.fuel_models_processor.read(fuel_models_filename)
         environment = self.environment_processor.read(environment_filename)
         ignition_points = self.ignition_processor.read(ignition_points_filename)
         iterations = int(self.iterations_processor.read(iterations_filename)[0])
+        elevation = self.elevation_processor.read(elevation_filename)
 
         terrain_topography_facade = BaseTerrainTopographyFacade(landscape, fuel_models, environment)
         terrain_topography = TerrainTopographyBuilder(landscape.shape, terrain_topography_facade).build()
@@ -55,7 +58,8 @@ if __name__ == '__main__':
         fuel_models_processor=FuelModelsProcessor(BaseFuelFacade(defaults_fuel)),
         environment_processor=EnvironmentProcessor(LoadDefaults(landscape_env.shape)),
         ignition_processor=IgnitionsProcessor(),
-        iterations_processor=IterationsProcessor()
+        iterations_processor=IterationsProcessor(),
+        elevation_processor=ElevationProcessor(landscape_env)
     )
 
     fire_simulator.run(
