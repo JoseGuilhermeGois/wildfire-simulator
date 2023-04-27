@@ -32,16 +32,18 @@ class FireSimulator:
         terrain_topography_facade = BaseTerrainTopographyFacade(landscape, fuel_models, environment)
         terrain_topography = TerrainTopographyBuilder(landscape.shape, terrain_topography_facade).build()
 
+        ignitions_counter = 0
         for pair in ignition_points:
             try:
                 latitude, longitude = pair
             except ValueError:
-                list_length = len(pair)
-                raise RuntimeError("Length of the pair ({}) is not 2.".format(list_length))
+                ignition_values = len(pair)
+                raise RuntimeError("Length of the pair ({}) is not 2.".format(ignition_values))
 
+            ignitions_counter += 1
             terrain_topography[int(longitude)][int(latitude)].state = State.BURNING
 
-        Fire(landscape, terrain_topography, iterations).start()
+        Fire(landscape, terrain_topography, iterations, ignitions_counter).start()
 
 
 if __name__ == '__main__':

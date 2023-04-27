@@ -20,7 +20,7 @@ class DefaultsFuel:
     SAV_RATIO_100_H_DEFAULT = 0.984
     SAV_RATIO_LIVE_WOOD_DEFAULT = 0.0
     PARTICLE_DENSITY_DEFAULT = 31.96  # 512 divided by 16.018
-    MOISTURE_CONTENT_DEFAULT = ((0.08, 0.07, 0.06), (0.70, 0.80))
+    MOISTURE_CONTENT_DEFAULT = ((0.1, 0.1, 0.1), (0, 0.80))
 
 
 # Interface

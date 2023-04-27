@@ -5,15 +5,17 @@ from fire.spread import Neighbour, SpreadTimeCalculatorStrategyFactory
 
 
 class Fire:
-    def __init__(self, landscape: Landscape, terrain_topography: list[list[Element]], iterations: int):
+    def __init__(self, landscape: Landscape, terrain_topography: list[list[Element]], iterations: int,
+                 ignitions_counter: int):
         self.shape = landscape.shape
         self.element_size: int = landscape.element_size
         self.terrain_topography: list[list[Element]] = terrain_topography
         self.iterations = iterations
+        self.ignition_counter = ignitions_counter
 
     def start(self):
         frames = [self.frame() for _ in range(self.iterations)]
-        visualize(frames)
+        visualize(frames, self.ignition_counter)
 
     def frame(self):
         lowest_spread_time = self.update_spread_and_get_lowest()
@@ -73,6 +75,7 @@ class Fire:
             element.spread_time -= time_interval
             if element.spread_time <= 0:
                 element.state = State.BURNING
+                self.ignition_counter += 1
 
         elif element.state == State.BURNING:
             element.residence_time -= time_interval
