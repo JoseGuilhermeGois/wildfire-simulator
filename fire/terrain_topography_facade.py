@@ -329,5 +329,6 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
             g=g,
             h=h,
             upslope_direction=upslope_direction,
-            flame_depth=flame_depth
+            flame_depth=flame_depth,
+            time_of_ignition=None
         )

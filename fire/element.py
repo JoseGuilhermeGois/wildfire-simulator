@@ -42,4 +42,5 @@ class CombustibleElement(Element):
     h: float
     upslope_direction: float
     flame_depth: float
+    time_of_ignition: float | None
     

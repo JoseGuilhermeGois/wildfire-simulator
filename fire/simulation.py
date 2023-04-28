@@ -1,21 +1,26 @@
 from config import Landscape
 from fire.element import Element, CombustibleElement, State
+from fire.file_processor import create_file
 from fire.visualization import visualize, Frame
 from fire.spread import Neighbour, SpreadTimeCalculatorStrategyFactory
 
 
 class Fire:
     def __init__(self, landscape: Landscape, terrain_topography: list[list[Element]], iterations: int,
-                 ignitions_counter: int):
+                 ignitions_counter: int, list_of_ignitions: list[Element]):
         self.shape = landscape.shape
         self.element_size: int = landscape.element_size
         self.terrain_topography: list[list[Element]] = terrain_topography
         self.iterations = iterations
         self.ignition_counter = ignitions_counter
+        self.list_of_ignitions = list_of_ignitions
+        self.elapsed_time = 0
 
     def start(self):
         frames = [self.frame() for _ in range(self.iterations)]
-        visualize(frames, self.ignition_counter)
+        create_file(self.list_of_ignitions, self.ignition_counter, self.elapsed_time)
+
+        # visualize(frames, self.ignition_counter)
 
     def frame(self):
         lowest_spread_time = self.update_spread_and_get_lowest()
@@ -73,9 +78,12 @@ class Fire:
     def update_combustible_element(self, element: CombustibleElement, time_interval: float):
         if element.state == State.FLAMMABLE:
             element.spread_time -= time_interval
+            self.elapsed_time += time_interval
             if element.spread_time <= 0:
                 element.state = State.BURNING
                 self.ignition_counter += 1
+                element.time_of_ignition = self.elapsed_time
+                self.list_of_ignitions.append(element)
 
         elif element.state == State.BURNING:
             element.residence_time -= time_interval

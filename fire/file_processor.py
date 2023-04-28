@@ -1,13 +1,25 @@
 from fire import Element, CombustibleElement
 
 
-def process_file(time_elapsed: list, number_of_ignitions: int):
+def create_file(list_of_ignitions: list[CombustibleElement], ignition_counter, elapsed_time):
     with open("file.out", "w") as outfile:
         outfile.write("V 0.1\n")
-        outfile.write(str(time_elapsed[-1]) + "    Present time from first ignition\n")
-        outfile.write(str(number_of_ignitions) + "    Total burned cells\n")
+        outfile.write(str(elapsed_time) + "    Present time from first ignition\n")
+        outfile.write(str(ignition_counter) + "    Total burned cells\n")
         outfile.write("i,   j,    CrdX[m],       CrdY[m], RateofSpread[m/s], ResidenceTime[s], FireDepth[m], "
                       "FireLineInt[kW/m], FlameLength[m], Time[s], Phi[]\n")
+        for element in list_of_ignitions:
+            outfile.write("{}  {}  {}  {}  {}  {}  {}  {}\n".format(
+                element.location.latitude,
+                element.location.longitude,
+                "{:E}".format(element.rate_of_spread_heading_fire),
+                "{:E}".format(element.residence_time),
+                "{:E}".format(element.flame_depth),
+                "{:E}".format(element.fireline_intensity_head_fire),
+                "{:E}".format(element.flame_length * 0.3048),
+                "{:E}".format(element.time_of_ignition * 0.3048),
+            ))
+
 
 
 '''def get_latitude(self, elements: list[list[Element]]):

@@ -48,7 +48,8 @@ class LoadDefaults(LoadWindFacade):
                                           slope_steepness=slope_steepness,
                                           aspect=aspect)
 
-        return [[default_environment for _ in range(self.shape.width)] for _ in range(self.shape.length)]
+        return [[default_environment for _ in range(self.shape.width)] for _ in range(
+            self.shape.length)]
 
 
 class LoadModels(LoadWindFacade):
