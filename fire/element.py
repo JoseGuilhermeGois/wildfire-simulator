@@ -24,10 +24,13 @@ class IncombustibleElement(Element):
 class CombustibleElement(Element):
     state: State
     location: Location
+    latitude: int
+    longitude: int
     spread_time: int
     aspect: float
     r_0: float
     r_wind_up_slope: float
+    fixed_residence_time: float
     residence_time: float
     heat_per_unit_area: float
     fireline_intensity_head_fire: float

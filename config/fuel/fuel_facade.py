@@ -119,10 +119,8 @@ class BaseFuelFacade(FuelFacade):
 
         return heat_content
 
-    @staticmethod
     def to_bed_depth(bed_depth: float) -> float:
         return float(bed_depth * BED_DEPTH_CONSTANT)
 
-    @staticmethod
     def to_moisture_extinction_dead(moisture_extinction_dead: float) -> float:
         return float(moisture_extinction_dead / MOISTURE_EXTINCTION_DEAD_CONSTANT)

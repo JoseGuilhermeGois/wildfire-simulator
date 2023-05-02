@@ -7,7 +7,7 @@ from fire.spread import Neighbour, SpreadTimeCalculatorStrategyFactory
 
 class Fire:
     def __init__(self, landscape: Landscape, terrain_topography: list[list[Element]], iterations: int,
-                 ignitions_counter: int, list_of_ignitions: list[Element]):
+                 ignitions_counter: int, list_of_ignitions: list[CombustibleElement]):
         self.shape = landscape.shape
         self.element_size: int = landscape.element_size
         self.terrain_topography: list[list[Element]] = terrain_topography
@@ -18,6 +18,7 @@ class Fire:
 
     def start(self):
         frames = [self.frame() for _ in range(self.iterations)]
+
         create_file(self.list_of_ignitions, self.ignition_counter, self.elapsed_time)
 
         # visualize(frames, self.ignition_counter)
@@ -78,10 +79,10 @@ class Fire:
     def update_combustible_element(self, element: CombustibleElement, time_interval: float):
         if element.state == State.FLAMMABLE:
             element.spread_time -= time_interval
-            self.elapsed_time += time_interval
             if element.spread_time <= 0:
                 element.state = State.BURNING
                 self.ignition_counter += 1
+                self.elapsed_time += time_interval
                 element.time_of_ignition = self.elapsed_time
                 self.list_of_ignitions.append(element)
 

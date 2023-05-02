@@ -24,8 +24,8 @@ class LandscapeProcessor(BusinessConfigProcessor):
             length=int(self.get_parameter_value(file, LENGTH_DEFINITION)))
 
         location = Location(
-            latitude=float(self.get_parameter_value(file, LATITUDE_COORDINATE)),
-            longitude=float(self.get_parameter_value(file, LONGITUDE_COORDINATE)))
+            real_latitude=float(self.get_parameter_value(file, LATITUDE_COORDINATE)),
+            real_longitude=float(self.get_parameter_value(file, LONGITUDE_COORDINATE)))
 
         element_size = int(self.get_parameter_value(file, ELEMENT_SIZE_DEFINITION))
 
@@ -35,6 +35,8 @@ class LandscapeProcessor(BusinessConfigProcessor):
         fuel_model_distribution = fuel_model_reader[:shape.length]
         for i in range(len(fuel_model_distribution)):
             fuel_model_distribution[i] = fuel_model_distribution[i][:shape.width]
+
+        fuel_model_distribution = [line.rsplit() for columns in range (shape.width) for row in range(shape.length)]
 
         return Landscape(shape, location, element_size, fuel_model_distribution)
 

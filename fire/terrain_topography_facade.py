@@ -32,6 +32,13 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         if fuel is None or fuel_model_id == '0':
             return IncombustibleElement()
 
+        i = int(latitude)
+        j = int(longitude)
+        crd_x = self.landscape.location.real_latitude + (i - 1) * self.landscape.element_size + \
+                0.5 * self.landscape.element_size
+        crd_y = self.landscape.location.real_longitude + (j - 1) * self.landscape.element_size + \
+                0.5 * self.landscape.element_size
+
         # Weighting factors calculations
         # Mean total surface area per unit fuel cell of each size class within each category
         area_ij = [[0] * 3, [0] * 2]
@@ -310,12 +317,15 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         crown_initiation = 0
 
         return CombustibleElement(
-            location=Location(latitude, longitude),
+            location=Location(crd_x, crd_y),
+            latitude=latitude,
+            longitude=longitude,
             spread_time=sys.maxsize,
             state=State.FLAMMABLE,
             aspect=environment_values.aspect,
             r_0=r_0,
             r_wind_up_slope=r_wind_up_slope,
+            fixed_residence_time=tr,
             residence_time=tr,
             heat_per_unit_area=ha,
             fireline_intensity_head_fire=fire_line_intensity_head_fire,

@@ -22,8 +22,8 @@ def get_angle(element1: CombustibleElement, element2: CombustibleElement) -> flo
     """
     :return: Return the angle between the elements (measured in radians)
     """
-    longitude_distance = element2.location.longitude - element1.location.longitude
-    latitude_distance = element2.location.latitude - element1.location.latitude
+    longitude_distance = element2.location.real_longitude - element1.location.real_longitude
+    latitude_distance = element2.location.real_latitude - element1.location.real_latitude
 
     return math.atan2(longitude_distance, latitude_distance)
 

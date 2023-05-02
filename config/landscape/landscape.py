@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 @dataclass
 class Location:
-    latitude: float
-    longitude: float
+    real_latitude: float
+    real_longitude: float
 
 
 @dataclass
