@@ -5,6 +5,7 @@ from typing import Protocol
 import numpy as np
 
 from config.environment import Environment
+from config.environment.environment import WindIndex
 from config.fuel import Fuel
 from fire.element import CombustibleElement, IncombustibleElement, Element, State
 from config.landscape import Landscape, Location
@@ -18,26 +19,33 @@ class TerrainTopographyFacade(Protocol):
 
 class BaseTerrainTopographyFacade(TerrainTopographyFacade):
 
-    def __init__(self, landscape: Landscape, fuel_models: dict[str, Fuel], environment: list[list[Environment]]):
+    def __init__(self, landscape: Landscape, fuel_models: dict[str, Fuel],
+                 environment: Environment | list[list[Environment]]):
         self.landscape: Landscape = landscape
-        self.environment: list[list[Environment]] = environment
+        self.environment: Environment | [list[Environment]] = environment
         self.fuel_models: dict[str, Fuel] = fuel_models
 
-    def get_element(self, longitude: int, latitude: int) -> Element:
+    def get_element(self, y: int, x: int) -> Element:
 
-        fuel_model_id: str = self.landscape.fuel_model_distribution[longitude][latitude]
+        fuel_model_id: str = self.landscape.fuel_model_distribution[y][x]
         fuel: Fuel = self.fuel_models[fuel_model_id]
-        environment_values: Environment = self.environment[longitude][latitude]
+        environment_values: Environment = self.environment[y][x]
 
         if fuel is None or fuel_model_id == '0':
             return IncombustibleElement()
 
-        i = int(latitude)
-        j = int(longitude)
-        crd_x = self.landscape.location.real_latitude + (i - 1) * self.landscape.element_size + \
-                0.5 * self.landscape.element_size
-        crd_y = self.landscape.location.real_longitude + (j - 1) * self.landscape.element_size + \
-                0.5 * self.landscape.element_size
+        crd_x_node = self.landscape.location.real_latitude + (
+                x - 1) * self.landscape.element_size + 0.5 * self.landscape.element_size
+        crd_y_node = self.landscape.location.real_longitude + (
+                y - 1) * self.landscape.element_size + 0.5 * self.landscape.element_size
+
+        vel_u, vel_v, vel_w = self.convert_crd_to_wind_mesh(crd_x_node, crd_y_node, y, x)
+        wind_angle = self.calc_angle(vel_u, vel_v)
+        vel_wind = math.sqrt(vel_u * vel_u + vel_v * vel_v + 0 * vel_w * vel_w)
+        ValorLimite = 0.0004023 * Air(mc1, HourNow)
+        if vel_wind > ValorLimite:
+            vel_wind = ValorLimite
+        vel_wind_ft_min = vel_wind * 196.82
 
         # Weighting factors calculations
         # Mean total surface area per unit fuel cell of each size class within each category
@@ -159,8 +167,10 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         optimum_reaction_velocity = \
             maximum_reaction_velocity * (relative_packing_ratio ** aaa) * np.exp(aaa * (1 - relative_packing_ratio))
 
-        reaction_intensity_dead = net_load_dead*heat_content_i[0]*moisture_damping_coff_i[0]*mineral_damping_coff_i[0]
-        reaction_intensity_live = net_load_live*heat_content_i[1]*moisture_damping_coff_i[1]*mineral_damping_coff_i[1]
+        reaction_intensity_dead = net_load_dead * heat_content_i[0] * moisture_damping_coff_i[0] * \
+                                  mineral_damping_coff_i[0]
+        reaction_intensity_live = net_load_live * heat_content_i[1] * moisture_damping_coff_i[1] * \
+                                  mineral_damping_coff_i[1]
 
         reaction_intensity = optimum_reaction_velocity * (reaction_intensity_dead + reaction_intensity_live)
 
@@ -198,8 +208,8 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         r_wind_up_slope = round(r_wind_up_slope, 6)
 
         # ----------------------------------------------------------------------------------------
-        d_s = r_0 * pi_s    # * t (elapsed time)
-        d_w = r_0 * pi_w    # * t (elapsed time)
+        d_s = r_0 * pi_s  # * t (elapsed time)
+        d_w = r_0 * pi_w  # * t (elapsed time)
         ''' 
         The wind direction used in this model is the opposite of the given wind direction. 
         Because the given wind direction is defined as the direction the wind is coming from.
@@ -233,7 +243,7 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         effective_wind_factor = (r_h / r_0) - 1
 
         # Effective wind speed (ft/min)
-        effective_wind_speed = (((effective_wind_factor * (relative_packing_ratio ** eee)) / ccc) ** (1/bbb))
+        effective_wind_speed = (((effective_wind_factor * (relative_packing_ratio ** eee)) / ccc) ** (1 / bbb))
 
         # The ellipse length-to-width ratio in the direction of max spread.
         # Effective wind speed in mi/h in the formulation of Z. # TODO: check this later
@@ -317,9 +327,9 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
         crown_initiation = 0
 
         return CombustibleElement(
-            location=Location(crd_x, crd_y),
-            latitude=latitude,
-            longitude=longitude,
+            location=Location(crd_x_node, crd_y_node),
+            latitude=x,
+            longitude=y,
             spread_time=sys.maxsize,
             state=State.FLAMMABLE,
             aspect=environment_values.aspect,
@@ -342,3 +352,69 @@ class BaseTerrainTopographyFacade(TerrainTopographyFacade):
             flame_depth=flame_depth,
             time_of_ignition=None
         )
+
+    def convert_crd_to_wind_mesh(self, crd_x_node, crd_y_node, y, x):
+        iv = int((crd_x_node - WindIndex.X_IniWnd) / WindIndex.DxWnd + 0.5)
+        jv = int((crd_y_node - WindIndex.Y_IniWnd) / WindIndex.DyWnd + 0.5)
+        if iv < 0 or iv >= WindIndex.NiWnd or jv < 0 or jv >= WindIndex.NjWnd:
+            vel_u = 0
+            vel_v = 0
+            vel_w = 0
+            return vel_u, vel_v, vel_w
+
+        xv1 = WindIndex.XX_Wnd[iv]
+        xv2 = WindIndex.XX_Wnd[iv + 1]
+        yv1 = WindIndex.YY_Wnd[jv]
+        yv2 = WindIndex.YY_Wnd[jv + 1]
+
+        height = WindIndex.ZZ_Wnd[iv][jv][1]
+        flngt = terrain.flame_length
+        veglngt = bed_depth[x][y]
+
+        vel_u = self.get_velocity_component(WindIndex.U, iv, jv, xv1, xv2, yv1, yv2, crd_x_node, crd_y_node, height,
+                                            flngt, veglngt)
+        vel_v = self.get_velocity_component(WindIndex.V, iv, jv, xv1, xv2, yv1, yv2, crd_x_node, crd_y_node, height,
+                                            flngt, veglngt)
+        vel_w = self.get_velocity_component(WindIndex.W, iv, jv, xv1, xv2, yv1, yv2, crd_x_node, crd_y_node, height,
+                                            flngt, veglngt)
+
+        return vel_u, vel_v, vel_w
+
+    def get_velocity_component(self, wind_component, iv, jv, xv1, xv2, yv1, yv2, crd_x_node, crd_y_node, height, flngt,
+                               veglngt):
+
+        velfga = self.interpol(yv1, wind_component[iv][jv][1], yv2, wind_component[iv][jv + 1][1], crd_y_node)
+        velfgb = self.interpol(yv1, wind_component[iv + 1][jv][1], yv2, wind_component[iv + 1][jv + 1][1], crd_y_node)
+        result = self.interpol(xv1, velfga, xv2, velfgb, crd_x_node)
+        vel_comp = result * (1 + 0.36 * veglngt / flngt) / (math.log((height + 0.36 * veglngt) / (0.13 * veglngt))) * (
+                math.log((flngt / veglngt + 0.36) / 0.13) - 1)
+
+        return vel_comp
+
+    def interpol(self, x1, y1, x2, y2, x):
+        return y1 + (y2 - y1) / (0.0000000001 + x2 - x1) * (x - x1)
+
+    def FN_ArcCos(x):
+        if abs(x) != 1:
+            return math.atan(-x / math.sqrt(-x * x + 1)) + 2 * math.atan(1)
+        else:
+            if x == 1:
+                return 0
+            if x == -1:
+                return math.pi
+
+    def calc_angle(self, vel_1, vel_2):
+        if vel_1 > 0 and vel_2 >= 0:
+            return math.atan(vel_2 / vel_1)
+        elif vel_1 < 0 <= vel_2:
+            return math.atan(vel_2 / vel_1) + 3.14159
+        elif vel_1 < 0 and vel_2 <= 0:
+            return math.atan(vel_2 / vel_1) + 3.14159
+        elif vel_1 > 0 > vel_2:
+            return math.atan(vel_2 / vel_1) + 2 * 3.14159
+        elif vel_1 == 0 and vel_2 > 0:
+            return 0.5 * 3.14159
+        elif vel_1 == 0 and vel_2 < 0:
+            return -0.5 * 3.14159
+        elif vel_1 == 0 and vel_2 == 0:
+            return 0

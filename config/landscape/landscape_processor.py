@@ -31,12 +31,7 @@ class LandscapeProcessor(BusinessConfigProcessor):
 
         skip_lines(file)
 
-        fuel_model_reader = [line.rsplit() for line in file]
-        fuel_model_distribution = fuel_model_reader[:shape.length]
-        for i in range(len(fuel_model_distribution)):
-            fuel_model_distribution[i] = fuel_model_distribution[i][:shape.width]
-
-        fuel_model_distribution = [line.rsplit() for columns in range (shape.width) for row in range(shape.length)]
+        fuel_model_distribution = self.get_fuel_values(file, shape.length, shape.width)
 
         return Landscape(shape, location, element_size, fuel_model_distribution)
 
@@ -49,3 +44,14 @@ class LandscapeProcessor(BusinessConfigProcessor):
             raise NameError(f"{definition} is missing!")
 
         return var_value
+
+    def get_fuel_values(self, file: TextIO, length: int, width: int):
+        fuel_values = []
+        for _ in range(length + 6):
+            fuel_line_values = file.readline().rsplit()[:width]
+            fuel_values.append(fuel_line_values)
+
+        return fuel_values
+
+
+

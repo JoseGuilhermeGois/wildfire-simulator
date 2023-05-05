@@ -2,7 +2,7 @@ from fire import CombustibleElement
 
 
 def create_file(list_of_ignitions: list[CombustibleElement], ignition_counter, elapsed_time):
-    with open("C:\\Users\\guigo\\Software\\IMfire-Project\\resources\\fire.out", "w") as outfile:
+    with open("C:\\Users\\guigo\\Software\\IMfireProject\\output\\fire.out", "w") as outfile:
         outfile.write("V 0.1\n")
         outfile.write(str(round(elapsed_time * 60, 1)) + "    Present time from first ignition in seconds\n")
         outfile.write(str(ignition_counter) + "    Total burned cells\n")
