@@ -40,5 +40,6 @@ class CombustibleElement(Element):
     f: float
     g: float
     h: float
+    slope_steepness: float
     upslope_direction: float
     

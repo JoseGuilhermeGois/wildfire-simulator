@@ -1,7 +1,7 @@
 """This file is to run the simulation."""
 
 from config import BusinessConfigProcessor, LandscapeProcessor, FuelModelsProcessor, BaseFuelFacade, DefaultsFuel, \
-    IterationsProcessor, IgnitionsProcessor, EnvironmentProcessor, LoadDefaults
+    IterationsProcessor, IgnitionsProcessor, EnvironmentProcessor, LoadDefaults, ElevationProcessor
 from fire import State, BaseTerrainTopographyFacade, TerrainTopographyBuilder, Fire
 
 
@@ -67,5 +67,6 @@ if __name__ == '__main__':
         fuel_models_filename="resources/LopesFuelModels.fls",
         environment_filename="resources/default_wind.asc",
         ignition_points_filename="resources/ignitions.asc",
-        iterations_filename="resources/time_step.asc"
+        iterations_filename="resources/time_step.asc",
+        elevation_filename="resources/elevation.asc"
     )
