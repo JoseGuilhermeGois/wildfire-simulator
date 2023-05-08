@@ -40,13 +40,9 @@ class LoadDefaults(LoadWindFacade):
 
         wind_speed = round(float(file.readline().split()[0]), 4) * 196.9
         wind_direction = 180 - round(float(file.readline().split()[0]), 4)
-        slope_steepness = math.tan(math.radians(round(float(file.readline().split()[0]), 4)))
-        aspect = 180 - round(float(file.readline().split()[0]), 4)
 
         default_environment = Environment(wind_speed=wind_speed,
-                                          wind_direction=wind_direction,
-                                          slope_steepness=slope_steepness,
-                                          aspect=aspect)
+                                          wind_direction=wind_direction)
 
         return [[default_environment for _ in range(self.shape.width)] for _ in range(self.shape.length)]
 

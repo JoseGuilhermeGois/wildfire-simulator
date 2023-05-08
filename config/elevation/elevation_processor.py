@@ -1,24 +1,17 @@
 from typing import TextIO
-import math
-import numpy as np
 
 from config.business_processor import BusinessConfigProcessor, skip_lines
-from .landscape import Landscape, Shape, Location
-from .landscape_processor import LandscapeProcessor
 from .elevation import Elevation
 
 
 WIDTH_DEFINITION = "ncols"
 LENGTH_DEFINITION = "nrows"
-LATITUDE_COORDINATE = "xllcorner"
-LONGITUDE_COORDINATE = "yllcorner"
-ELEMENT_SIZE_DEFINITION = "cellsize"
+# LATITUDE_COORDINATE = "xllcorner"
+# LONGITUDE_COORDINATE = "yllcorner"
+# ELEMENT_SIZE_DEFINITION = "cellsize"
 
 
 class ElevationProcessor(BusinessConfigProcessor):
-
-    def __init__(self, landscape: Landscape):
-        self.landscape = landscape
 
     def process(self, file: TextIO) -> Elevation:
         """
@@ -29,10 +22,10 @@ class ElevationProcessor(BusinessConfigProcessor):
         width = int(self.get_parameter_value(file, WIDTH_DEFINITION))
         length = int(self.get_parameter_value(file, LENGTH_DEFINITION))
 
-        latitude = float(self.get_parameter_value(file, LATITUDE_COORDINATE))
-        longitude = float(self.get_parameter_value(file, LONGITUDE_COORDINATE))
-
-        element_size = int(self.get_parameter_value(file, ELEMENT_SIZE_DEFINITION))
+        # latitude = float(self.get_parameter_value(file, LATITUDE_COORDINATE))
+        # longitude = float(self.get_parameter_value(file, LONGITUDE_COORDINATE))
+        #
+        # element_size = int(self.get_parameter_value(file, ELEMENT_SIZE_DEFINITION))
 
         # if width == landscape.shape.width:
         #     continue
@@ -40,11 +33,10 @@ class ElevationProcessor(BusinessConfigProcessor):
         #
         #      raise ValueError
 
-
         skip_lines(file)
 
         elevation_reader = [line.rsplit() for line in file]
-        elevation_distribution = elevation_reader[:length]
+        elevation_distribution = elevation_reader[6: length]
 
         for i in range(len(elevation_distribution)):
             elevation_distribution[i] = elevation_distribution[i][:width]

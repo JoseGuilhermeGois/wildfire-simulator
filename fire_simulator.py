@@ -32,7 +32,7 @@ class FireSimulator:
         iterations = int(self.iterations_processor.read(iterations_filename)[0])
         elevation = self.elevation_processor.read(elevation_filename)
 
-        terrain_topography_facade = BaseTerrainTopographyFacade(landscape, fuel_models, environment)
+        terrain_topography_facade = BaseTerrainTopographyFacade(landscape, fuel_models, environment, elevation)
         terrain_topography = TerrainTopographyBuilder(landscape.shape, terrain_topography_facade).build()
 
         for pair in ignition_points:
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         environment_processor=EnvironmentProcessor(LoadDefaults(landscape_env.shape)),
         ignition_processor=IgnitionsProcessor(),
         iterations_processor=IterationsProcessor(),
-        elevation_processor=ElevationProcessor(landscape_env)
+        elevation_processor=ElevationProcessor()
     )
 
     fire_simulator.run(

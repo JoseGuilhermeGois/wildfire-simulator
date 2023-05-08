@@ -18,5 +18,3 @@ class WindIndex:
 class Environment:
     wind_speed: float
     wind_direction: float
-    slope_steepness: float
-    aspect: float

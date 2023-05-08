@@ -6,4 +6,3 @@ class Elevation:
     elevation_distribution: list[list[str]]
 
 
-
