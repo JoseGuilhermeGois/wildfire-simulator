@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Protocol
 
-from config.landscape.landscape import Location
+from config.reader.landscape.landscape import Location
 
 
 class State(Enum):
@@ -27,7 +27,8 @@ class CombustibleElement(Element):
     latitude: int
     longitude: int
     spread_time: int
-    aspect: float
+    upslope_direction: float
+    slope_steepness: float
     r_0: float
     r_wind_up_slope: float
     fixed_residence_time: float
@@ -43,7 +44,7 @@ class CombustibleElement(Element):
     f: float
     g: float
     h: float
-    upslope_direction: float
     flame_depth: float
     time_of_ignition: float | None
+    ros: float | None
     

@@ -5,23 +5,19 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as anim
 
 
-
-
 @dataclass
 class Frame:
     data: list[list[int]]
     interval: float
 
 
-def visualize(frames: list[Frame], number_of_ignitions: int):
+def visualize(frames: list[Frame]):
     data = [frame.data for frame in frames]
 
     time = [sum(frame.interval for frame in frames[:i]) for i, _ in enumerate(frames)]
     time_limited_decimals = ["{:.5f}".format(i) for i in time]
 
-    process_file(time_limited_decimals, number_of_ignitions)
-
-    fig, ax = plt.subplots(figsize=(5, 8))
+    fig, ax = plt.subplots(figsize=(12, 8))
     colormap = colors.ListedColormap(['blue', 'green', 'red', 'darkred'])
 
     def animate(i):

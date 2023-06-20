@@ -1,6 +1,6 @@
 from fire.element import Element
 from fire.terrain_topography_facade import TerrainTopographyFacade
-from config.landscape import Shape
+from config.reader.landscape import Shape
 
 
 class TerrainTopographyBuilder:

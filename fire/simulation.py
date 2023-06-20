@@ -1,7 +1,7 @@
 from config import Landscape
 from fire.element import Element, CombustibleElement, State
-from fire.file_processor import create_file
-from fire.visualization import visualize, Frame
+from config.writer.writer import create_file
+from fire.visualization import Frame, visualize
 from fire.spread import Neighbour, SpreadTimeCalculatorStrategyFactory
 
 
@@ -21,7 +21,8 @@ class Fire:
 
         create_file(self.list_of_ignitions, self.ignition_counter, self.elapsed_time)
 
-        # visualize(frames, self.ignition_counter)
+
+        visualize(frames)
 
     def frame(self):
         lowest_spread_time = self.update_spread_and_get_lowest()
@@ -45,6 +46,8 @@ class Fire:
         if isinstance(element, CombustibleElement) and element.state == State.FLAMMABLE:
             spread_time_calculator_strategy_factory = SpreadTimeCalculatorStrategyFactory(element, self.element_size)
             lowest_spread_time = element.spread_time
+            ros = None
+            neighbour_coordinates = None
             for neighbour in Neighbour:
                 spread_time_calculator_strategy = spread_time_calculator_strategy_factory.create(neighbour)
                 for neighbour_longitude_offset, neighbour_latitude_offset in neighbour.value:
@@ -55,10 +58,17 @@ class Fire:
 
                     neighbour_element = self.terrain_topography[neighbour_longitude][neighbour_latitude]
                     if neighbour_element.state == State.BURNING:
-                        spread_time = spread_time_calculator_strategy.calculate(neighbour_element)
-                        if spread_time is not None and spread_time < lowest_spread_time:
-                            lowest_spread_time = spread_time
+                        spread_time_info = spread_time_calculator_strategy.calculate(neighbour_element)
+                        if spread_time_info[0] is not None and spread_time_info[0] < lowest_spread_time:
+                            lowest_spread_time = spread_time_info[0]
+                            ros = spread_time_info[1]
+                            neighbour_coordinates = [neighbour_longitude, neighbour_latitude]
+
             element.spread_time = lowest_spread_time
+            if ros is not None:
+                neighbour_element_ros = self.terrain_topography[neighbour_coordinates[0]][neighbour_coordinates[1]]
+                neighbour_element_ros.ros = ros
+
             return element.spread_time
 
     """ Steps to go forward! To the next step. """

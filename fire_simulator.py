@@ -1,46 +1,51 @@
 """This file is to run the simulation."""
 from enum import Enum
 
-from config import BusinessConfigProcessor, LandscapeProcessor, FuelModelsProcessor, BaseFuelFacade, DefaultsFuel, \
-    IterationsProcessor, IgnitionsProcessor, EnvironmentProcessor, LoadDefaults, Landscape
-from fire import State, BaseTerrainTopographyFacade, TerrainTopographyBuilder, Fire, Element, CombustibleElement
-from fire.file_processor import create_file
+from config.reader import BusinessConfigProcessor, LandscapeProvider, FuelModelsProcessor, BaseFuelFacade, DefaultsFuel, \
+    IterationsProcessor, IgnitionsProcessor, EnvironmentProvider
+from config.reader.elevation.elevation_provider import ElevationProvider
+from fire import State, BaseTerrainTopographyFacade, TerrainTopographyBuilder, Fire, CombustibleElement
 
 
 class ConfigFilenames(Enum):
-    LANDSCAPE_FILENAME = "resources/fuel_1m_gestosa.asc"
+    LANDSCAPE_FILENAME = "resources/LopesFuelsMap.asc"
     FUEL_MODELS_FILENAME = "resources/LopesFuelModels.fls"
-    ENVIRONMENT_FILENAME = "resources/default_wind.asc"
+    ENVIRONMENT_FILENAME = "resources/LopesCanyon.out"
     IGNITION_POINTS_FILENAME = "resources/ignitions.asc"
     ITERATIONS_FILENAME = "resources/time_step.asc"
+    ELEVATION_FILENAME = "resources/LopesDEM.asc"
 
 
 class FireSimulator:
 
     def __init__(self,
-                 landscape_processor: BusinessConfigProcessor,
-                 fuel_models_processor: BusinessConfigProcessor,
-                 environment_processor: BusinessConfigProcessor,
-                 ignition_processor: BusinessConfigProcessor,
-                 iterations_processor: BusinessConfigProcessor):
+                 landscape_provider: BusinessConfigProcessor,
+                 fuel_models_provider: BusinessConfigProcessor,
+                 environment_provider: BusinessConfigProcessor,
+                 ignition_provider: BusinessConfigProcessor,
+                 iterations_provider: BusinessConfigProcessor,
+                 elevation_provider: BusinessConfigProcessor):
 
-        self.landscape_processor = landscape_processor
-        self.fuel_models_processor = fuel_models_processor
-        self.environment_processor = environment_processor
-        self.ignition_processor = ignition_processor
-        self.iterations_processor = iterations_processor
+        self.landscape_provider = landscape_provider
+        self.fuel_models_provider = fuel_models_provider
+        self.environment_provider = environment_provider
+        self.ignition_provider = ignition_provider
+        self.iterations_provider = iterations_provider
+        self.elevation_provider = elevation_provider
+
         self.ignitions_list: list[CombustibleElement] = []
 
     def run(self, landscape_filename: str, fuel_models_filename: str, environment_filename: str,
-            ignition_points_filename: str, iterations_filename: str):
+            ignition_points_filename: str, iterations_filename: str, elevation_filename: str):
 
-        landscape = self.landscape_processor.read(landscape_filename)
-        fuel_models = self.fuel_models_processor.read(fuel_models_filename)
-        environment = self.environment_processor.read(environment_filename)
-        ignition_points = self.ignition_processor.read(ignition_points_filename)
-        iterations = int(self.iterations_processor.read(iterations_filename)[0])
+        landscape = self.landscape_provider.read(landscape_filename)
+        fuel_models = self.fuel_models_provider.read(fuel_models_filename)
+        environment = self.environment_provider.read(environment_filename)
+        elevation = self.elevation_provider.read(elevation_filename)
+        ignition_points = self.ignition_provider.read(ignition_points_filename)
+        iterations = int(self.iterations_provider.read(iterations_filename)[0])
 
-        terrain_topography_facade = BaseTerrainTopographyFacade(landscape, fuel_models, environment)
+        terrain_topography_facade = BaseTerrainTopographyFacade(landscape, fuel_models, environment, elevation)
         terrain_topography = TerrainTopographyBuilder(landscape.shape, terrain_topography_facade).build()
 
         ignitions_counter = 0
@@ -65,15 +70,16 @@ class FireSimulator:
 if __name__ == '__main__':
     defaults_fuel = DefaultsFuel()
 
-    landscape_processor = LandscapeProcessor()
-    environment_processor = landscape_processor.read(ConfigFilenames.LANDSCAPE_FILENAME.value)
+    landscape_instance = LandscapeProvider()
+    environment_instance = landscape_instance.read(ConfigFilenames.LANDSCAPE_FILENAME.value)
 
     fire_simulator = FireSimulator(
-        landscape_processor=LandscapeProcessor(),
-        fuel_models_processor=FuelModelsProcessor(BaseFuelFacade(defaults_fuel)),
-        environment_processor=EnvironmentProcessor(LoadDefaults(environment_processor.shape)),
-        ignition_processor=IgnitionsProcessor(),
-        iterations_processor=IterationsProcessor()
+        landscape_provider=LandscapeProvider(),
+        fuel_models_provider=FuelModelsProcessor(BaseFuelFacade(defaults_fuel)),
+        environment_provider=EnvironmentProvider(environment_instance),
+        ignition_provider=IgnitionsProcessor(),
+        iterations_provider=IterationsProcessor(),
+        elevation_provider=ElevationProvider(environment_instance)
     )
 
     fire_simulator.run(
@@ -81,5 +87,6 @@ if __name__ == '__main__':
         fuel_models_filename=ConfigFilenames.FUEL_MODELS_FILENAME.value,
         environment_filename=ConfigFilenames.ENVIRONMENT_FILENAME.value,
         ignition_points_filename=ConfigFilenames.IGNITION_POINTS_FILENAME.value,
-        iterations_filename=ConfigFilenames.ITERATIONS_FILENAME.value
+        iterations_filename=ConfigFilenames.ITERATIONS_FILENAME.value,
+        elevation_filename=ConfigFilenames.ELEVATION_FILENAME.value
     )

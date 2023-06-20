@@ -31,12 +31,12 @@ class SpreadTimeCalculatorStrategy(ABC):
     def distance(self) -> float:
         raise NotImplementedError
 
-    def calculate(self, neighbour_element: CombustibleElement) -> float | None:
+    def calculate(self, neighbour_element: CombustibleElement) -> list[float] | None:
         rate_of_spread = get_rate_of_spread(element1=self.central_element, element2=neighbour_element)
         if rate_of_spread == 0:
             return None
 
-        return self.distance() / rate_of_spread
+        return [self.distance() / rate_of_spread, rate_of_spread]
 
 
 class AdjacentNeighbourSpreadTimeCalculator(SpreadTimeCalculatorStrategy):

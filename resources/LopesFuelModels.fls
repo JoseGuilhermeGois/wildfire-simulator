@@ -139,24 +139,24 @@ M1
  4.9          **flmlngt--flamelength-(m)
  1800         **Decaytime--(min)
  .5           **InitialRHRFact--(min)
-Cas-1
- .271         **omg0-----Ovendry.fuel-loading-dead1h
- .164         **omg0-----Ovendry.fuel-loading-dead10h
- 0            **omg0-----Ovendry.fuel-loading-dead100h
+Cas-1(PPIN_02)
+ 0.6        **omg0-----Ovendry.fuel-loading-dead1h
+ 0.5            **omg0-----Ovendry.fuel-loading-dead10h
+ 0.2            **omg0-----Ovendry.fuel-loading-dead100h
  0            **omg0-----Ovendry.fuel-loading-live
- .46          **delta----fuel-depth-dead
- .46          **delta----fuel-depth-live
- 74           **sigma----fuel-particle-surf.-area-to-volume-ratio-dead
- 50           **sigma----fuel-particle-surf.-area-to-volume-ratio-live
- 19385        **heatcnt--fuel-particle-low-heat-content-dead-(kJ/kg)
- 19385        **heatcnt--fuel-particle-low-heat-content-live-(kJ/kg)
- 10           **amf------fuel-particle-moisture-content-dead1h
- 10           **amf------fuel-particle-moisture-content-dead10h
- 10           **amf------fuel-particle-moisture-content-dead100h
- 10           **amf------fuel-particle-moisture-content-live
- 24           **amxD-----moisture-content-of-extinction
- 40           **fuelcolor
- 4.9          **flmlngt--flamelength-(m)
+ 0.35          **delta----fuel-depth-dead
+ 0.35          **delta----fuel-depth-live
+ 60           **sigma----fuel-particle-surf.-area-to-volume-ratio-dead
+ 0           **sigma----fuel-particle-surf.-area-to-volume-ratio-live
+ 21000        **heatcnt--fuel-particle-low-heat-content-dead-(kJ/kg)
+ 21000        **heatcnt--fuel-particle-low-heat-content-live-(kJ/kg)
+ 6           **amf------fuel-particle-moisture-content-dead1h
+ 7           **amf------fuel-particle-moisture-content-dead10h
+ 8           **amf------fuel-particle-moisture-content-dead100h
+ 85           **amf------fuel-particle-moisture-content-live
+ 50           **amxD-----moisture-content-of-extinction
+ 6027658           **fuelcolor
+ 6          **flmlngt--flamelength-(m)
  1800         **Decaytime--(min)
  .5           **InitialRHRFact--(min)
 ******-Modelo-de-teste8-******
