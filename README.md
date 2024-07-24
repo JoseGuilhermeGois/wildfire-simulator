@@ -1,5 +1,3 @@
-# IMfire
-
 In order to simulate the fire spread, the terrain we're evaluating will be treated as a 2d matrix of cells. For easier tranlation to the real world certain analogies will be applied for naming conventions.
 
 * cell >> element
